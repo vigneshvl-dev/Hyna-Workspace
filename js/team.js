@@ -26,26 +26,10 @@ class TeamController {
             <span class="badge badge-primary" style="margin: 0.35rem 0 0.75rem 0;">${u.role}</span>
             <p style="font-size: 0.8rem; color: var(--text-muted); mb-2">${u.department}</p>
             <p style="font-size: 0.75rem; color: var(--primary); font-weight: 600;">${u.email}</p>
-            
-            <div style="margin-top: 1.25rem; padding-top: 1rem; border-top: 1px solid var(--border-color);">
-              <button class="btn btn-secondary btn-sm member-profile-btn" data-id="${u.id}" style="width: 100%;">
-                View Profile & Activity
-              </button>
-            </div>
           </div>
         `).join('')}
       </div>
     `;
-
-    container.querySelectorAll('.member-profile-btn').forEach(btn => {
-      btn.addEventListener('click', (e) => {
-        const uId = e.currentTarget.dataset.id;
-        const user = users.find(u => u.id === uId);
-        if (user) {
-          window.appController?.showToast(`Viewing profile for ${user.name} (${user.role})`, 'info');
-        }
-      });
-    });
   }
 }
 
