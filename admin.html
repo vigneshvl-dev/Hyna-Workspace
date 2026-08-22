@@ -1,0 +1,153 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hyna Studio — Admin Control Portal & System Governance</title>
+  <meta name="description" content="Hyna Studio Administrative Control Center for user role management, governance, and compliance audit.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body class="admin-portal-body">
+  <div class="admin-app-container">
+    <!-- STANDALONE DEDICATED ADMIN SIDEBAR -->
+    <aside class="admin-sidebar">
+      <div class="admin-sidebar-header">
+        <a href="admin.html#overview" class="brand-logo">
+          <img src="assets/logo.png" alt="Hyna Studio Admin Logo" class="brand-logo-img">
+          <div>
+            <div class="brand-name">Hyna Admin</div>
+            <span class="admin-badge-tag">Portal</span>
+          </div>
+        </a>
+      </div>
+
+      <div class="admin-sidebar-content">
+        <div class="nav-section-title">Core Management</div>
+        <ul class="nav-list">
+          <li class="nav-item active" data-admin-route="overview">
+            <a href="#overview">
+              <span class="nav-icon"><i class="fa-solid fa-chart-pie"></i></span>
+              <span>Overview & KPIs</span>
+            </a>
+          </li>
+          <li class="nav-item" data-admin-route="users">
+            <a href="#users">
+              <span class="nav-icon"><i class="fa-solid fa-users-gear"></i></span>
+              <span>User & Role Directory</span>
+            </a>
+          </li>
+          <li class="nav-item" data-admin-route="roles">
+            <a href="#roles">
+              <span class="nav-icon"><i class="fa-solid fa-user-shield"></i></span>
+              <span>Permissions Matrix</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="nav-section-title">Governance & Security</div>
+        <ul class="nav-list">
+          <li class="nav-item" data-admin-route="modules">
+            <a href="#modules">
+              <span class="nav-icon"><i class="fa-solid fa-book-open"></i></span>
+              <span>Module Publishing</span>
+            </a>
+          </li>
+          <li class="nav-item" data-admin-route="audit">
+            <a href="#audit">
+              <span class="nav-icon"><i class="fa-solid fa-list-check"></i></span>
+              <span>Audit Compliance</span>
+            </a>
+          </li>
+          <li class="nav-item" data-admin-route="config">
+            <a href="#config">
+              <span class="nav-icon"><i class="fa-solid fa-sliders"></i></span>
+              <span>System Settings</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="nav-section-title">Exit Portal</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="index.html" class="link-employee-workspace">
+              <span class="nav-icon"><i class="fa-solid fa-arrow-left"></i></span>
+              <span>Employee Workspace</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- Admin Profile Footer -->
+      <div class="sidebar-user">
+        <img src="https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80" alt="Admin Avatar" class="user-avatar" id="admin-user-avatar">
+        <div class="user-info">
+          <div class="user-name" id="admin-user-name">Hyna Leadership</div>
+          <div class="user-role" id="admin-user-role">Super Admin / CEO</div>
+        </div>
+        <button class="header-action-btn" onclick="window.authService.logout()" title="Logout Admin" style="margin-left:auto; color:#ef4444;">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- STANDALONE ADMIN MAIN CONTAINER -->
+    <div class="admin-main-wrapper">
+      <!-- TOP HEADER NAVBAR -->
+      <header class="admin-top-header">
+        <div class="header-left">
+          <div class="admin-search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" id="admin-header-search" placeholder="Search employees, roles, logs, rules...">
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- System Health Pill -->
+          <div class="admin-status-pill status-active" style="padding: 0.4rem 0.8rem; font-size: 0.8rem;">
+            <i class="fa-solid fa-circle" style="font-size: 0.55rem; color: #22c55e;"></i> System Health: 99.9%
+          </div>
+
+          <!-- Link Back to Employee Workspace -->
+          <a href="index.html" class="btn btn-secondary btn-sm" style="display: flex; align-items: center; gap: 0.4rem;">
+            <i class="fa-solid fa-arrow-left"></i> Employee Workspace
+          </a>
+        </div>
+      </header>
+
+      <!-- DYNAMIC ADMIN CONTENT CONTAINER -->
+      <main class="content-body" id="admin-portal-content">
+        <!-- Rendered by AdminController -->
+      </main>
+    </div>
+  </div>
+
+  <!-- Firebase SDK Compatibility Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-service.js"></script>
+
+  <!-- JavaScript Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/admin.js"></script>
+</body>
+</html>

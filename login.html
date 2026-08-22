@@ -1,0 +1,415 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hyna Studio — Employee & Admin Login Portal</title>
+  <meta name="description" content="Secure login portal for Hyna Studio Employee Workspace and Administrative Control Center.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/admin.css">
+
+  <style>
+    body.login-page-body {
+      min-height: 100vh;
+      background: radial-gradient(circle at 50% 20%, #1e1b4b 0%, #0f172a 60%, #090d16 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 2rem 1rem;
+      color: #f8fafc;
+    }
+
+    .login-card-container {
+      width: 100%;
+      max-width: 480px;
+      background: rgba(30, 41, 59, 0.85);
+      backdrop-filter: blur(20px);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 24px;
+      padding: 2.5rem 2.25rem;
+      box-shadow: 0 25px 60px rgba(0, 0, 0, 0.6);
+      position: relative;
+    }
+
+    .login-brand-header {
+      text-align: center;
+      margin-bottom: 2rem;
+    }
+
+    .login-brand-logo {
+      width: 64px;
+      height: 64px;
+      object-fit: contain;
+      filter: drop-shadow(0 8px 16px rgba(0, 198, 255, 0.4));
+      margin-bottom: 0.75rem;
+      transition: transform 0.3s ease;
+    }
+
+    .login-brand-logo:hover {
+      transform: scale(1.08) rotate(4deg);
+    }
+
+    .login-brand-title {
+      font-size: 1.6rem;
+      font-weight: 800;
+      color: #ffffff;
+      margin: 0;
+      letter-spacing: -0.02em;
+    }
+
+    .login-brand-subtitle {
+      font-size: 0.85rem;
+      color: #94a3b8;
+      margin-top: 0.35rem;
+    }
+
+    /* Portal Type Switcher Tabs */
+    .portal-tabs {
+      display: flex;
+      background: rgba(15, 23, 42, 0.6);
+      padding: 4px;
+      border-radius: 14px;
+      margin-bottom: 1.75rem;
+      border: 1px solid rgba(255, 255, 255, 0.08);
+    }
+
+    .portal-tab-btn {
+      flex: 1;
+      padding: 0.7rem 0.5rem;
+      border: none;
+      background: transparent;
+      color: #94a3b8;
+      font-weight: 700;
+      font-size: 0.85rem;
+      border-radius: 10px;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.5rem;
+      transition: all 0.25s ease;
+    }
+
+    .portal-tab-btn.active.workspace-tab {
+      background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(37, 99, 235, 0.4);
+    }
+
+    .portal-tab-btn.active.admin-tab {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      color: #ffffff;
+      box-shadow: 0 4px 14px rgba(239, 68, 68, 0.4);
+    }
+
+    .login-form-group {
+      margin-bottom: 1.25rem;
+    }
+
+    .login-form-label {
+      display: block;
+      font-size: 0.85rem;
+      font-weight: 700;
+      color: #cbd5e1;
+      margin-bottom: 0.5rem;
+    }
+
+    .input-with-icon {
+      position: relative;
+      display: flex;
+      align-items: center;
+    }
+
+    .input-with-icon i.input-icon {
+      position: absolute;
+      left: 1rem;
+      color: #64748b;
+      font-size: 1rem;
+      pointer-events: none;
+    }
+
+    .input-with-icon input {
+      width: 100%;
+      padding: 0.85rem 1rem 0.85rem 2.75rem;
+      background: rgba(15, 23, 42, 0.7);
+      border: 1px solid rgba(255, 255, 255, 0.12);
+      border-radius: 12px;
+      color: #ffffff;
+      font-size: 0.95rem;
+      outline: none;
+      transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    }
+
+    .input-with-icon input:focus {
+      border-color: #38bdf8;
+      box-shadow: 0 0 0 3px rgba(56, 189, 248, 0.2);
+    }
+
+    .btn-login-submit {
+      width: 100%;
+      padding: 0.9rem;
+      border: none;
+      border-radius: 12px;
+      font-weight: 800;
+      font-size: 1rem;
+      cursor: pointer;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 0.6rem;
+      color: #ffffff;
+      background: linear-gradient(135deg, #2563eb 0%, #06b6d4 100%);
+      box-shadow: 0 6px 20px rgba(37, 99, 235, 0.4);
+      transition: all 0.25s ease;
+      margin-top: 1.5rem;
+    }
+
+    .btn-login-submit.admin-btn {
+      background: linear-gradient(135deg, #ef4444 0%, #dc2626 100%);
+      box-shadow: 0 6px 20px rgba(239, 68, 68, 0.4);
+    }
+
+    .btn-login-submit:hover {
+      transform: translateY(-2px);
+      filter: brightness(1.1);
+    }
+
+    /* Alert Banner */
+    .login-alert {
+      padding: 0.85rem 1rem;
+      border-radius: 10px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-bottom: 1.25rem;
+      display: none;
+    }
+
+    .login-alert.alert-error {
+      background: rgba(239, 68, 68, 0.15);
+      border: 1px solid rgba(239, 68, 68, 0.4);
+      color: #f87171;
+    }
+
+    /* Demo Quick Credentials Grid */
+    .demo-credentials-box {
+      margin-top: 2rem;
+      padding-top: 1.5rem;
+      border-top: 1px solid rgba(255, 255, 255, 0.1);
+    }
+
+    .demo-title {
+      font-size: 0.75rem;
+      font-weight: 700;
+      color: #94a3b8;
+      text-transform: uppercase;
+      letter-spacing: 0.06em;
+      margin-bottom: 0.85rem;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+    }
+
+    .demo-grid {
+      display: flex;
+      flex-direction: column;
+      gap: 0.5rem;
+    }
+
+    .demo-user-badge {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      padding: 0.55rem 0.85rem;
+      background: rgba(15, 23, 42, 0.5);
+      border: 1px solid rgba(255, 255, 255, 0.08);
+      border-radius: 10px;
+      cursor: pointer;
+      transition: all 0.2s ease;
+    }
+
+    .demo-user-badge:hover {
+      background: rgba(255, 255, 255, 0.08);
+      border-color: rgba(255, 255, 255, 0.2);
+      transform: translateX(4px);
+    }
+
+    .demo-user-info {
+      display: flex;
+      align-items: center;
+      gap: 0.6rem;
+    }
+
+    .demo-user-id {
+      font-weight: 800;
+      font-size: 0.8rem;
+      color: #38bdf8;
+      background: rgba(56, 189, 248, 0.12);
+      padding: 0.15rem 0.45rem;
+      border-radius: 6px;
+    }
+  </style>
+</head>
+<body class="login-page-body">
+
+  <div class="login-card-container">
+    <div class="login-brand-header">
+      <img src="assets/logo.png" alt="Hyna Studio Logo" class="login-brand-logo">
+      <h1 class="login-brand-title">Hyna Studio</h1>
+      <p class="login-brand-subtitle" id="portal-subtitle">Employee Workspace & Internal Ecosystem</p>
+    </div>
+
+    <!-- Portal Switcher Tabs -->
+    <div class="portal-tabs">
+      <button class="portal-tab-btn active workspace-tab" id="tab-workspace">
+        <i class="fa-solid fa-briefcase"></i> Employee Workspace
+      </button>
+      <button class="portal-tab-btn admin-tab" id="tab-admin">
+        <i class="fa-solid fa-user-shield"></i> Admin Portal
+      </button>
+    </div>
+
+    <!-- Alert Box -->
+    <div class="login-alert alert-error" id="login-alert-box">
+      <i class="fa-solid fa-triangle-exclamation"></i> <span id="login-alert-msg"></span>
+    </div>
+
+    <!-- Login Form -->
+    <form id="login-form">
+      <div class="login-form-group">
+        <label class="login-form-label">Employee ID</label>
+        <div class="input-with-icon">
+          <i class="fa-solid fa-id-card input-icon"></i>
+          <input type="text" id="input-emp-id" placeholder="e.g. EMP-001" required autocomplete="off">
+        </div>
+      </div>
+
+      <div class="login-form-group">
+        <label class="login-form-label">Password / Security PIN</label>
+        <div class="input-with-icon">
+          <i class="fa-solid fa-lock input-icon"></i>
+          <input type="password" id="input-password" placeholder="Enter security password" required>
+        </div>
+      </div>
+
+      <button type="submit" class="btn-login-submit" id="btn-submit-login">
+        <i class="fa-solid fa-right-to-bracket"></i> Sign In to Workspace
+      </button>
+    </form>
+  </div>
+
+  <!-- Firebase SDK Compatibility Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-service.js"></script>
+
+  <!-- Application Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script>
+    document.addEventListener('DOMContentLoaded', () => {
+      let activePortal = 'workspace'; // 'workspace' or 'admin'
+
+      const tabWorkspace = document.getElementById('tab-workspace');
+      const tabAdmin = document.getElementById('tab-admin');
+      const subtitle = document.getElementById('portal-subtitle');
+      const btnSubmit = document.getElementById('btn-submit-login');
+      const alertBox = document.getElementById('login-alert-box');
+      const alertMsg = document.getElementById('login-alert-msg');
+      const form = document.getElementById('login-form');
+      const empInput = document.getElementById('input-emp-id');
+      const passInput = document.getElementById('input-password');
+
+      const setPortal = (portal) => {
+        activePortal = portal;
+        alertBox.style.display = 'none';
+
+        if (portal === 'admin') {
+          tabAdmin.classList.add('active');
+          tabWorkspace.classList.remove('active');
+          subtitle.innerText = 'Administrative Governance & Control Center';
+          btnSubmit.innerHTML = '<i class="fa-solid fa-user-shield"></i> Sign In to Admin Panel';
+          btnSubmit.classList.add('admin-btn');
+        } else {
+          tabWorkspace.classList.add('active');
+          tabAdmin.classList.remove('active');
+          subtitle.innerText = 'Employee Workspace & Internal Ecosystem';
+          btnSubmit.innerHTML = '<i class="fa-solid fa-right-to-bracket"></i> Sign In to Workspace';
+          btnSubmit.classList.remove('admin-btn');
+        }
+      };
+
+      tabWorkspace.addEventListener('click', () => setPortal('workspace'));
+      tabAdmin.addEventListener('click', () => setPortal('admin'));
+
+      // Form submission handling
+      form.addEventListener('submit', (e) => {
+        e.preventDefault();
+        alertBox.style.display = 'none';
+
+        const empId = empInput.value.trim();
+        const password = passInput.value.trim();
+
+        if (!empId) {
+          showAlert('Please enter your Employee ID.');
+          return;
+        }
+
+        const user = window.storageService.getUserByEmpId(empId);
+        if (!user) {
+          showAlert(`Employee ID "${empId}" not found in system roster.`);
+          return;
+        }
+
+        if (user.status !== 'Active') {
+          showAlert(`Account for Employee ID ${empId} (${user.name}) is suspended.`);
+          return;
+        }
+
+        if (user.password && user.password !== password) {
+          showAlert(`Incorrect security password for Employee ID "${empId}".`);
+          return;
+        }
+
+        // Admin Security Clearance Check
+        if (activePortal === 'admin') {
+          const isAdminRole = ['Manager', 'Project Management Lead', 'Director', 'CEO', 'Admin', 'Super Admin'].includes(user.role);
+          if (!isAdminRole) {
+            showAlert(`Access Denied: Employee ID ${empId} (${user.name}) is a ${user.role} and does not have Administrative Clearance.`);
+            return;
+          }
+        }
+
+        // Set active session
+        window.storageService.setSession(user.id);
+
+        // Redirect to target portal
+        if (activePortal === 'admin') {
+          window.location.href = 'admin.html';
+        } else {
+          window.location.href = 'index.html';
+        }
+      });
+
+      const showAlert = (msg) => {
+        alertMsg.innerText = msg;
+        alertBox.style.display = 'block';
+      };
+    });
+  </script>
+</body>
+</html>

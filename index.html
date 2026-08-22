@@ -1,0 +1,197 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Hyna Studio Workspace — Employee Ecosystem</title>
+  <meta name="description" content="Hyna Studio internal workspace for modules, tasks, projects, attendance, and team communication.">
+
+  <!-- Favicon -->
+  <link rel="icon" type="image/png" href="assets/logo.png">
+
+  <!-- Google Fonts -->
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
+
+  <!-- Font Awesome Icons -->
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+
+  <!-- CSS Stylesheets -->
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="css/dashboard.css">
+  <link rel="stylesheet" href="css/modules.css">
+  <link rel="stylesheet" href="css/attendance.css">
+  <link rel="stylesheet" href="css/admin.css">
+  <link rel="stylesheet" href="css/responsive.css">
+
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+  <div class="app-container">
+    <!-- PERSISTENT SIDEBAR NAVIGATION -->
+    <aside class="sidebar">
+      <div class="sidebar-header">
+        <a href="#dashboard" class="brand-logo">
+          <img src="assets/logo.png" alt="Hyna Studio Logo" class="brand-logo-img">
+          <div>
+            <div class="brand-name">Hyna Studio</div>
+            <span class="brand-badge">Workspace</span>
+          </div>
+        </a>
+        <button class="sidebar-toggle-btn" id="mobile-menu-btn">
+          <i class="fa-solid fa-bars"></i>
+        </button>
+      </div>
+
+      <div class="sidebar-content">
+        <div class="nav-section-title">Main Navigation</div>
+        <ul class="nav-list">
+          <li class="nav-item active">
+            <a href="#dashboard">
+              <span class="nav-icon"><i class="fa-solid fa-house"></i></span>
+              <span>Dashboard</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#modules">
+              <span class="nav-icon"><i class="fa-solid fa-book-open"></i></span>
+              <span>Modules</span>
+              <span class="nav-badge" style="background-color: var(--primary);">Active</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#tasks">
+              <span class="nav-icon"><i class="fa-solid fa-square-check"></i></span>
+              <span>Tasks</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#projects">
+              <span class="nav-icon"><i class="fa-solid fa-folder"></i></span>
+              <span>Projects</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#team">
+              <span class="nav-icon"><i class="fa-solid fa-users"></i></span>
+              <span>Team Directory</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#attendance">
+              <span class="nav-icon"><i class="fa-solid fa-clock"></i></span>
+              <span>Attendance</span>
+            </a>
+          </li>
+        </ul>
+
+        <div class="nav-section-title">Workspace Tools</div>
+        <ul class="nav-list">
+          <li class="nav-item">
+            <a href="#notifications">
+              <span class="nav-icon"><i class="fa-solid fa-bell"></i></span>
+              <span>Notifications</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#calendar">
+              <span class="nav-icon"><i class="fa-solid fa-calendar-days"></i></span>
+              <span>Calendar</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#documents">
+              <span class="nav-icon"><i class="fa-solid fa-file-lines"></i></span>
+              <span>Documents</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#communication">
+              <span class="nav-icon"><i class="fa-solid fa-comments"></i></span>
+              <span>Team Chat</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#reports">
+              <span class="nav-icon"><i class="fa-solid fa-chart-column"></i></span>
+              <span>Reports</span>
+            </a>
+          </li>
+          <li class="nav-item">
+            <a href="#settings">
+              <span class="nav-icon"><i class="fa-solid fa-gear"></i></span>
+              <span>Settings</span>
+            </a>
+          </li>
+        </ul>
+      </div>
+
+      <!-- User Profile Sidebar Footer -->
+      <div class="sidebar-user">
+        <img src="https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80" alt="User Avatar" class="user-avatar" id="sidebar-user-avatar">
+        <div class="user-info">
+          <div class="user-name" id="sidebar-user-name">Alex Morgan</div>
+          <div class="user-role" id="sidebar-user-role">Team Member</div>
+        </div>
+        <button class="header-action-btn" onclick="window.authService.logout()" title="Logout & Exit" style="margin-left:auto; color:#ef4444;">
+          <i class="fa-solid fa-right-from-bracket"></i>
+        </button>
+      </div>
+    </aside>
+
+    <!-- MAIN WRAPPER CONTAINER -->
+    <div class="main-wrapper">
+      <!-- TOP HEADER NAVBAR -->
+      <header class="top-header">
+        <div class="header-left">
+          <button class="mobile-menu-toggle" id="mobile-hamburger">
+            <i class="fa-solid fa-bars"></i>
+          </button>
+          <div class="search-box">
+            <i class="fa-solid fa-magnifying-glass"></i>
+            <input type="text" placeholder="Search modules, tasks, files...">
+          </div>
+        </div>
+
+        <div class="header-right">
+          <!-- Notification Bell Dropdown -->
+          <button class="header-action-btn" onclick="window.appController.navigate('notifications')" title="Notifications">
+            <i class="fa-regular fa-bell"></i>
+            <span class="notification-count" id="notif-badge-count">2</span>
+          </button>
+        </div>
+      </header>
+
+      <!-- DYNAMIC CONTENT ROUTER CONTAINER -->
+      <main class="content-body" id="app-content">
+        <!-- Rendered dynamically by appController -->
+      </main>
+    </div>
+  </div>
+
+  <!-- Firebase SDK Compatibility Scripts -->
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-app-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-firestore-compat.js"></script>
+  <script src="https://www.gstatic.com/firebasejs/9.23.0/firebase-auth-compat.js"></script>
+  <script src="js/firebase-config.js"></script>
+  <script src="js/firebase-service.js"></script>
+
+  <!-- JavaScript Scripts -->
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/notifications.js"></script>
+  <script src="js/attendance.js"></script>
+  <script src="js/modules.js"></script>
+  <script src="js/tasks.js"></script>
+  <script src="js/projects.js"></script>
+  <script src="js/team.js"></script>
+  <script src="js/calendar.js"></script>
+  <script src="js/documents.js"></script>
+  <script src="js/communication.js"></script>
+  <script src="js/reports.js"></script>
+  <script src="js/dashboard.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>

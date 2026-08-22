@@ -1,0 +1,161 @@
+import re
+
+svg_content = '''<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="100%" height="100%">
+  <defs>
+    <!-- Vibrant Blue-Cyan 3D Gradients -->
+    <linearGradient id="hyna-grad-top" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00f2fe" />
+      <stop offset="40%" stop-color="#0088ff" />
+      <stop offset="100%" stop-color="#0044cc" />
+    </linearGradient>
+
+    <linearGradient id="hyna-grad-bottom" x1="100%" y1="100%" x2="0%" y2="0%">
+      <stop offset="0%" stop-color="#00f2fe" />
+      <stop offset="40%" stop-color="#0077ff" />
+      <stop offset="100%" stop-color="#0033aa" />
+    </linearGradient>
+
+    <linearGradient id="hyna-arm-1" x1="0%" y1="0%" x2="100%" y2="50%">
+      <stop offset="0%" stop-color="#00d2ff" />
+      <stop offset="100%" stop-color="#0055ff" />
+    </linearGradient>
+
+    <linearGradient id="hyna-arm-2" x1="100%" y1="100%" x2="0%" y2="50%">
+      <stop offset="0%" stop-color="#00d2ff" />
+      <stop offset="100%" stop-color="#0055ff" />
+    </linearGradient>
+
+    <!-- 3D Cube Facet Gradients -->
+    <linearGradient id="cube-top-face" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#a5f3fc" />
+      <stop offset="100%" stop-color="#38bdf8" />
+    </linearGradient>
+    <linearGradient id="cube-left-face" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0284c7" />
+      <stop offset="100%" stop-color="#0369a1" />
+    </linearGradient>
+    <linearGradient id="cube-right-face" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#0369a1" />
+      <stop offset="100%" stop-color="#1d4ed8" />
+    </linearGradient>
+
+    <!-- Ambient Shadow & Glow -->
+    <filter id="hyna-drop-shadow" x="-20%" y="-20%" width="140%" height="140%">
+      <feDropShadow dx="0" dy="12" stdDeviation="16" flood-color="#0066ff" flood-opacity="0.38" />
+    </filter>
+    <filter id="center-glow" x="-40%" y="-40%" width="180%" height="180%">
+      <feGaussianBlur stdDeviation="8" result="blur" />
+      <feComposite in="SourceGraphic" in2="blur" operator="over" />
+    </filter>
+  </defs>
+
+  <g filter="url(#hyna-drop-shadow)">
+    <!-- OUTER GEOMETRIC INTERLOCKING S-LOOPS -->
+    
+    <!-- Top-Left & Upper Loop Assembly -->
+    <path d="M 175,100 
+             L 260,100 
+             C 320,100 365,130 380,180 
+             L 380,215 
+             C 380,240 360,250 338,238 
+             L 215,168 
+             C 195,156 195,138 215,118 
+             C 225,108 245,100 260,100 Z" 
+          fill="url(#hyna-grad-top)" />
+
+    <!-- Top Left Main Outer Loop Sweep -->
+    <path d="M 230,100 
+             C 170,100 130,140 130,200 
+             L 130,230 
+             C 130,252 145,265 168,278 
+             L 315,360 
+             C 335,372 335,390 315,402 
+             C 300,412 280,412 260,412 
+             L 180,412 
+             C 170,412 160,402 165,392 
+             C 170,382 185,382 195,382 
+             L 250,382 
+             C 285,382 305,362 285,350 
+             L 155,275 
+             C 105,245 100,195 100,170 
+             C 100,110 150,70 230,70 
+             L 270,70 
+             C 350,70 410,110 410,190 
+             L 410,225 
+             C 410,265 380,290 345,270 
+             L 210,192 
+             C 185,178 185,158 210,138 
+             C 220,130 240,130 260,130 
+             L 270,130 
+             C 285,130 295,120 285,108 
+             C 275,96 250,100 230,100 Z" 
+          fill="url(#hyna-grad-top)" />
+
+    <!-- Bottom-Right Symmetrical Counter-Loop (180deg Rotated) -->
+    <g transform="rotate(180 256 256)">
+      <path d="M 175,100 
+               L 260,100 
+               C 320,100 365,130 380,180 
+               L 380,215 
+               C 380,240 360,250 338,238 
+               L 215,168 
+               C 195,156 195,138 215,118 
+               C 225,108 245,100 260,100 Z" 
+            fill="url(#hyna-grad-bottom)" />
+
+      <path d="M 230,100 
+               C 170,100 130,140 130,200 
+               L 130,230 
+               C 130,252 145,265 168,278 
+               L 315,360 
+               C 335,372 335,390 315,402 
+               C 300,412 280,412 260,412 
+               L 180,412 
+               C 170,412 160,402 165,392 
+               C 170,382 185,382 195,382 
+               L 250,382 
+               C 285,382 305,362 285,350 
+               L 155,275 
+               C 105,245 100,195 100,170 
+               C 100,110 150,70 230,70 
+               L 270,70 
+               C 350,70 410,110 410,190 
+               L 410,225 
+               C 410,265 380,290 345,270 
+               L 210,192 
+               C 185,178 185,158 210,138 
+               C 220,130 240,130 260,130 
+               L 270,130 
+               C 285,130 295,120 285,108 
+               C 275,96 250,100 230,100 Z" 
+            fill="url(#hyna-grad-bottom)" />
+    </g>
+
+    <!-- INNER DIAGONAL ARMS POINTING TOWARDS CENTER CUBE -->
+    <path d="M 210,185 L 325,250 C 340,258 350,250 340,235 L 235,175 C 220,166 200,175 210,185 Z" fill="url(#hyna-arm-1)" />
+    <path d="M 302,327 L 187,262 C 172,254 162,262 172,277 L 277,337 C 292,346 312,337 302,327 Z" fill="url(#hyna-arm-2)" />
+
+    <!-- CENTRAL 3D ISOMETRIC CUBE GEM -->
+    <g transform="translate(256, 256)" filter="url(#center-glow)">
+      <!-- Outer Glow Aura -->
+      <circle cx="0" cy="0" r="32" fill="#00f2fe" opacity="0.25" />
+
+      <!-- Top Face -->
+      <polygon points="0,-26 22,-13 0,0 -22,-13" fill="url(#cube-top-face)" />
+      <!-- Left Face -->
+      <polygon points="-22,-13 0,0 0,26 -22,13" fill="url(#cube-left-face)" />
+      <!-- Right Face -->
+      <polygon points="0,0 22,-13 22,13 0,26" fill="url(#cube-right-face)" />
+
+      <!-- Highlight Edges -->
+      <line x1="0" y1="-26" x2="0" y2="0" stroke="#ffffff" stroke-width="1.5" opacity="0.6" />
+      <line x1="-22" y1="-13" x2="0" y2="0" stroke="#ffffff" stroke-width="1.5" opacity="0.6" />
+      <line x1="22" y1="-13" x2="0" y2="0" stroke="#ffffff" stroke-width="1.5" opacity="0.6" />
+    </g>
+  </g>
+</svg>
+'''
+
+with open('/Volumes/AKSHAYA/Hyna project file -August/Hyna-Workspace/assets/logo.svg', 'w') as f:
+    f.write(svg_content)
+print("SVG logo written successfully")
