@@ -35,6 +35,28 @@ class FirebaseService {
     return users.find(u => u.empId && u.empId.toLowerCase() === cleanId);
   }
 
+  async updateUser(userId, updatedData) {
+    try {
+      await fetch(`${this.baseUrl}/users/${userId}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(updatedData)
+      });
+      this.addAuditLog('Employee Profile Updated', `User ${userId} updated in Cloud Database`);
+    } catch (e) {
+      console.warn("Firebase update user error:", e);
+    }
+  }
+
+  async deleteUser(userId) {
+    try {
+      await fetch(`${this.baseUrl}/users/${userId}.json`, { method: 'DELETE' });
+      this.addAuditLog('Employee Deleted', `User ${userId} deleted from Cloud Database`);
+    } catch (e) {
+      console.warn("Firebase delete user error:", e);
+    }
+  }
+
   async updateUserRole(userId, newRole) {
     try {
       await fetch(`${this.baseUrl}/users/${userId}.json`, {

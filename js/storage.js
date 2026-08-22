@@ -389,6 +389,32 @@ class StorageService {
     }
   }
 
+  updateUser(userId, updatedData) {
+    const users = this.getUsers();
+    const userIndex = users.findIndex(u => u.id === userId);
+    if (userIndex !== -1) {
+      users[userIndex] = { ...users[userIndex], ...updatedData };
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+      this.addAuditLog('Employee Profile Updated', `${users[userIndex].name} (${users[userIndex].empId || userId})`);
+      if (window.firebaseService) {
+        window.firebaseService.updateUser(userId, updatedData);
+      }
+    }
+  }
+
+  deleteUser(userId) {
+    let users = this.getUsers();
+    const targetUser = users.find(u => u.id === userId);
+    users = users.filter(u => u.id !== userId);
+    localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+    if (targetUser) {
+      this.addAuditLog('Employee Deleted', `${targetUser.name} (${targetUser.empId || userId}) removed from roster`);
+    }
+    if (window.firebaseService) {
+      window.firebaseService.deleteUser(userId);
+    }
+  }
+
   updateUserPassword(userId, newPassword) {
     const users = this.getUsers();
     const user = users.find(u => u.id === userId);

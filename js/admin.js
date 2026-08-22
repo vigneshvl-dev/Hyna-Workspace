@@ -319,9 +319,15 @@ class AdminController {
                       <option value="CEO" ${u.role === 'CEO' ? 'selected' : ''}>CEO / Super Admin</option>
                     </select>
                   </td>
-                  <td>
-                    <button class="btn btn-sm ${u.status === 'Active' ? 'btn-secondary' : 'btn-primary'} btn-toggle-status">
+                  <td style="display:flex; gap:0.4rem; align-items:center;">
+                    <button class="btn btn-sm btn-secondary btn-edit-user" title="Edit Profile Details">
+                      <i class="fa-solid fa-pen text-primary"></i> Edit
+                    </button>
+                    <button class="btn btn-sm ${u.status === 'Active' ? 'btn-secondary' : 'btn-primary'} btn-toggle-status" title="Toggle Access">
                       <i class="fa-solid ${u.status === 'Active' ? 'fa-user-slash' : 'fa-user-check'}"></i> ${u.status === 'Active' ? 'Suspend' : 'Activate'}
+                    </button>
+                    <button class="btn btn-sm btn-danger btn-delete-user" title="Delete Employee">
+                      <i class="fa-solid fa-trash"></i> Delete
                     </button>
                   </td>
                 </tr>
@@ -354,6 +360,28 @@ class AdminController {
         }
         this.storage.updateUserPassword(userId, newPass);
         this.showToast(`Password updated for user!`, 'success');
+      });
+    });
+
+    // Edit User Event Listener
+    container.querySelectorAll('.btn-edit-user').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const userId = e.target.closest('tr').getAttribute('data-user-id');
+        this.openEditUserModal(userId);
+      });
+    });
+
+    // Delete User Event Listener
+    container.querySelectorAll('.btn-delete-user').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const row = e.target.closest('tr');
+        const userId = row.getAttribute('data-user-id');
+        const user = users.find(u => u.id === userId);
+        if (user && confirm(`Are you sure you want to delete employee "${user.name}" (${user.empId || 'EMP'}) from the system roster?`)) {
+          this.storage.deleteUser(userId);
+          this.showToast(`Deleted employee ${user.name}`, 'info');
+          this.renderUsersTab(container);
+        }
       });
     });
 
@@ -572,14 +600,22 @@ class AdminController {
     });
   }
 
-  // --- ADD USER MODAL ---
+  // --- ADD USER MODAL WITH IMAGE OPTION ---
   openAddUserModal() {
     const modalContainer = document.getElementById('admin-modal-container');
     if (!modalContainer) return;
 
+    const avatarPresets = [
+      { label: 'Executive Male', url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80' },
+      { label: 'Female Manager', url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80' },
+      { label: 'Engineer Male', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' },
+      { label: 'PM Lead', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80' },
+      { label: 'Director Female', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80' }
+    ];
+
     modalContainer.innerHTML = `
       <div class="admin-modal-backdrop">
-        <div class="admin-modal">
+        <div class="admin-modal" style="max-width:560px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
             <h3 style="margin:0; color:#fff; font-weight:800; font-size:1.2rem;">
               <i class="fa-solid fa-user-plus text-primary"></i> Add Employee to Hyna System
@@ -607,6 +643,17 @@ class AdminController {
             <div class="form-group" style="margin-bottom:1rem;">
               <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;">Corporate Email</label>
               <input type="email" class="form-control" id="new-user-email" placeholder="jordan.m@hyna.studio" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;"><i class="fa-solid fa-image text-success"></i> Profile Photo / Avatar Image URL</label>
+              <input type="url" class="form-control" id="new-user-avatar" value="${avatarPresets[0].url}" placeholder="https://example.com/avatar.jpg">
+              <div style="display:flex; gap:0.5rem; margin-top:0.5rem; align-items:center;">
+                <span style="font-size:0.75rem; color:#94a3b8;">Click preset photo:</span>
+                ${avatarPresets.map((p, i) => `
+                  <img src="${p.url}" title="${p.label}" class="avatar-preset-btn" style="width:32px; height:32px; border-radius:50%; cursor:pointer; border:2px solid transparent;" data-url="${p.url}">
+                `).join('')}
+              </div>
             </div>
 
             <div class="grid grid-2" style="gap:1rem; margin-bottom:1rem;">
@@ -645,17 +692,148 @@ class AdminController {
     modalContainer.querySelector('#close-modal-btn')?.addEventListener('click', closeModal);
     modalContainer.querySelector('#cancel-modal-btn')?.addEventListener('click', closeModal);
 
+    // Preset selection
+    modalContainer.querySelectorAll('.avatar-preset-btn').forEach(img => {
+      img.addEventListener('click', (e) => {
+        modalContainer.querySelector('#new-user-avatar').value = e.target.getAttribute('data-url');
+        this.showToast('Selected avatar photo preset', 'info');
+      });
+    });
+
     modalContainer.querySelector('#add-user-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
       const empId = modalContainer.querySelector('#new-user-empid').value.trim();
       const password = modalContainer.querySelector('#new-user-password').value.trim();
       const name = modalContainer.querySelector('#new-user-name').value.trim();
       const email = modalContainer.querySelector('#new-user-email').value.trim();
+      const avatar = modalContainer.querySelector('#new-user-avatar').value.trim();
       const dept = modalContainer.querySelector('#new-user-dept').value;
       const role = modalContainer.querySelector('#new-user-role').value;
 
-      this.storage.addUser({ empId, password, name, email, department: dept, role });
+      this.storage.addUser({ empId, password, name, email, avatar, department: dept, role });
       this.showToast(`Created employee ${name} (${empId})`, 'success');
+      closeModal();
+      const container = document.getElementById('admin-portal-content') || document.getElementById('app-content');
+      if (container) this.navigate(this.currentView);
+    });
+  }
+
+  // --- EDIT USER MODAL ---
+  openEditUserModal(userId) {
+    const modalContainer = document.getElementById('admin-modal-container');
+    if (!modalContainer) return;
+
+    const users = this.storage.getUsers();
+    const user = users.find(u => u.id === userId);
+    if (!user) return;
+
+    const avatarPresets = [
+      { label: 'Executive Male', url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80' },
+      { label: 'Female Manager', url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80' },
+      { label: 'Engineer Male', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' },
+      { label: 'PM Lead', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80' },
+      { label: 'Director Female', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80' }
+    ];
+
+    modalContainer.innerHTML = `
+      <div class="admin-modal-backdrop">
+        <div class="admin-modal" style="max-width:560px;">
+          <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
+            <h3 style="margin:0; color:#fff; font-weight:800; font-size:1.2rem;">
+              <i class="fa-solid fa-pen text-primary"></i> Edit Employee Profile: ${user.name}
+            </h3>
+            <button class="btn btn-secondary btn-sm" id="close-modal-btn">&times;</button>
+          </div>
+
+          <form id="edit-user-form">
+            <div class="grid grid-2" style="gap:1rem; margin-bottom:1rem;">
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;">Employee ID</label>
+                <input type="text" class="form-control" id="edit-user-empid" value="${user.empId || 'EMP-001'}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;">Login Password</label>
+                <input type="text" class="form-control" id="edit-user-password" value="${user.password || 'user123'}" required>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;">Full Name</label>
+              <input type="text" class="form-control" id="edit-user-name" value="${user.name}" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;">Corporate Email</label>
+              <input type="email" class="form-control" id="edit-user-email" value="${user.email}" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;"><i class="fa-solid fa-image text-success"></i> Profile Photo / Avatar Image URL</label>
+              <input type="url" class="form-control" id="edit-user-avatar" value="${user.avatar || avatarPresets[0].url}">
+              <div style="display:flex; gap:0.5rem; margin-top:0.5rem; align-items:center;">
+                <span style="font-size:0.75rem; color:#94a3b8;">Click preset photo:</span>
+                ${avatarPresets.map((p, i) => `
+                  <img src="${p.url}" title="${p.label}" class="avatar-preset-btn" style="width:32px; height:32px; border-radius:50%; cursor:pointer; border:2px solid transparent;" data-url="${p.url}">
+                `).join('')}
+              </div>
+            </div>
+
+            <div class="grid grid-2" style="gap:1rem; margin-bottom:1rem;">
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;">Department</label>
+                <select class="form-control" id="edit-user-dept">
+                  <option value="Engineering" ${user.department === 'Engineering' ? 'selected' : ''}>Engineering</option>
+                  <option value="Product" ${user.department === 'Product' ? 'selected' : ''}>Product</option>
+                  <option value="Design" ${user.department === 'Design' ? 'selected' : ''}>Design</option>
+                  <option value="Operations" ${user.department === 'Operations' ? 'selected' : ''}>Operations</option>
+                  <option value="Executive" ${user.department === 'Executive' ? 'selected' : ''}>Executive</option>
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;">Assigned Role Level</label>
+                <select class="form-control" id="edit-user-role">
+                  <option value="Team Member" ${user.role === 'Team Member' ? 'selected' : ''}>Team Member</option>
+                  <option value="Manager" ${user.role === 'Manager' ? 'selected' : ''}>Manager</option>
+                  <option value="Project Management Lead" ${user.role === 'Project Management Lead' ? 'selected' : ''}>PM Lead</option>
+                  <option value="Director" ${user.role === 'Director' ? 'selected' : ''}>Director</option>
+                  <option value="CEO" ${user.role === 'CEO' ? 'selected' : ''}>CEO / Super Admin</option>
+                </select>
+              </div>
+            </div>
+
+            <div style="display:flex; justify-content:flex-end; gap:0.75rem; margin-top:1.5rem;">
+              <button type="button" class="btn btn-secondary" id="cancel-modal-btn">Cancel</button>
+              <button type="submit" class="btn btn-primary"><i class="fa-solid fa-floppy-disk"></i> Save Profile Changes</button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const closeModal = () => modalContainer.innerHTML = '';
+    modalContainer.querySelector('#close-modal-btn')?.addEventListener('click', closeModal);
+    modalContainer.querySelector('#cancel-modal-btn')?.addEventListener('click', closeModal);
+
+    // Preset selection
+    modalContainer.querySelectorAll('.avatar-preset-btn').forEach(img => {
+      img.addEventListener('click', (e) => {
+        modalContainer.querySelector('#edit-user-avatar').value = e.target.getAttribute('data-url');
+        this.showToast('Selected avatar photo preset', 'info');
+      });
+    });
+
+    modalContainer.querySelector('#edit-user-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const empId = modalContainer.querySelector('#edit-user-empid').value.trim();
+      const password = modalContainer.querySelector('#edit-user-password').value.trim();
+      const name = modalContainer.querySelector('#edit-user-name').value.trim();
+      const email = modalContainer.querySelector('#edit-user-email').value.trim();
+      const avatar = modalContainer.querySelector('#edit-user-avatar').value.trim();
+      const dept = modalContainer.querySelector('#edit-user-dept').value;
+      const role = modalContainer.querySelector('#edit-user-role').value;
+
+      this.storage.updateUser(userId, { empId, password, name, email, avatar, department: dept, role });
+      this.showToast(`Updated employee ${name}`, 'success');
       closeModal();
       const container = document.getElementById('admin-portal-content') || document.getElementById('app-content');
       if (container) this.navigate(this.currentView);
