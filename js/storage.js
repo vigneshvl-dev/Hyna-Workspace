@@ -306,12 +306,19 @@ class StorageService {
       let updated = false;
       users = users.map((u, idx) => {
         const defaultU = DEFAULT_USERS.find(d => d.id === u.id) || DEFAULT_USERS[idx] || {};
+        if (u.empId === 'EMP-001' || u.id === 'user-001') {
+          if (u.role !== 'CEO' && u.role !== 'Super Admin' && u.role !== 'Admin') {
+            u.role = 'CEO';
+            u.name = 'System Administrator';
+            updated = true;
+          }
+        }
         if (!u.empId) {
           u.empId = defaultU.empId || `EMP-00${idx + 1}`;
           updated = true;
         }
         if (!u.password) {
-          u.password = defaultU.password || 'user123';
+          u.password = defaultU.password || 'admin123';
           updated = true;
         }
         return u;
