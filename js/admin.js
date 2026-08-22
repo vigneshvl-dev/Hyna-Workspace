@@ -437,6 +437,11 @@ class AdminController {
       });
     });
 
+    // Add Employee Button Listener
+    container.querySelector('#btn-add-user-table')?.addEventListener('click', () => {
+      this.openAddUserModal();
+    });
+
     // Account Status Toggle
     container.querySelectorAll('.btn-toggle-status').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -780,7 +785,13 @@ class AdminController {
       this.showToast(`Created employee ${name} (${empId})`, 'success');
       closeModal();
       const container = document.getElementById('admin-portal-content') || document.getElementById('app-content');
-      if (container) this.navigate(this.currentView);
+      if (container) {
+        if (this.currentView === 'users') {
+          this.renderUsersTab(container);
+        } else {
+          this.navigate(this.currentView);
+        }
+      }
     });
   }
 
