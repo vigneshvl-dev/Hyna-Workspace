@@ -83,6 +83,19 @@ class FirebaseService {
     }
   }
 
+  async updateUserEmail(userId, newEmail) {
+    try {
+      await fetch(`${this.baseUrl}/users/${userId}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ email: newEmail })
+      });
+      this.addAuditLog('Gmail / Email Update', `User ${userId} email updated in Cloud Database`);
+    } catch (e) {
+      console.warn("Firebase email update error:", e);
+    }
+  }
+
   async toggleUserStatus(userId, currentStatus) {
     try {
       const nextStatus = currentStatus === 'Active' ? 'Suspended' : 'Active';

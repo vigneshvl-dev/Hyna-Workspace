@@ -447,6 +447,19 @@ class StorageService {
     }
   }
 
+  updateUserEmail(userId, newEmail) {
+    const users = this.getUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      user.email = newEmail;
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+      this.addAuditLog('Gmail / Email Update', `Email updated for ${user.name} to ${newEmail}`);
+      if (window.firebaseService) {
+        window.firebaseService.updateUserEmail(userId, newEmail);
+      }
+    }
+  }
+
   toggleUserStatus(userId) {
     const users = this.getUsers();
     const user = users.find(u => u.id === userId);
