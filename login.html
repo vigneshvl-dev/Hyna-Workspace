@@ -369,21 +369,13 @@
           return;
         }
 
-        const user = window.storageService.getUserByEmpId(empId);
-        if (!user) {
-          showAlert(`Employee ID "${empId}" not found in system roster.`);
+        const authResult = window.storageService.authenticateUser(empId, password);
+        if (!authResult.success) {
+          showAlert(authResult.error);
           return;
         }
 
-        if (user.status !== 'Active') {
-          showAlert(`Account for Employee ID ${empId} (${user.name}) is suspended.`);
-          return;
-        }
-
-        if (user.password && user.password !== password) {
-          showAlert(`Incorrect security password for Employee ID "${empId}".`);
-          return;
-        }
+        const user = authResult.user;
 
         // Admin Security Clearance Check
         if (activePortal === 'admin') {
@@ -393,9 +385,6 @@
             return;
           }
         }
-
-        // Set active session
-        window.storageService.setSession(user.id);
 
         // Redirect to target portal
         if (activePortal === 'admin') {
