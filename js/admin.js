@@ -615,7 +615,7 @@ class AdminController {
 
     modalContainer.innerHTML = `
       <div class="admin-modal-backdrop">
-        <div class="admin-modal" style="max-width:560px;">
+        <div class="admin-modal" style="max-width:580px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
             <h3 style="margin:0; color:#fff; font-weight:800; font-size:1.2rem;">
               <i class="fa-solid fa-user-plus text-primary"></i> Add Employee to Hyna System
@@ -646,12 +646,18 @@ class AdminController {
             </div>
 
             <div class="form-group" style="margin-bottom:1rem;">
-              <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;"><i class="fa-solid fa-image text-success"></i> Profile Photo / Avatar Image URL</label>
-              <input type="url" class="form-control" id="new-user-avatar" value="${avatarPresets[0].url}" placeholder="https://example.com/avatar.jpg">
-              <div style="display:flex; gap:0.5rem; margin-top:0.5rem; align-items:center;">
-                <span style="font-size:0.75rem; color:#94a3b8;">Click preset photo:</span>
-                ${avatarPresets.map((p, i) => `
-                  <img src="${p.url}" title="${p.label}" class="avatar-preset-btn" style="width:32px; height:32px; border-radius:50%; cursor:pointer; border:2px solid transparent;" data-url="${p.url}">
+              <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;"><i class="fa-solid fa-image text-success"></i> Profile Photo / Avatar Image</label>
+              <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem; align-items:center;">
+                <input type="text" class="form-control" id="new-user-avatar" value="${avatarPresets[0].url}" placeholder="Paste URL or upload image from PC">
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-browse-file" style="white-space:nowrap; padding:0.45rem 0.75rem;">
+                  <i class="fa-solid fa-folder-open text-primary"></i> Upload PC Image
+                </button>
+                <input type="file" id="user-file-input" accept="image/*" style="display:none;">
+              </div>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <span style="font-size:0.75rem; color:#94a3b8;">Presets:</span>
+                ${avatarPresets.map(p => `
+                  <img src="${p.url}" title="${p.label}" class="avatar-preset-btn" style="width:28px; height:28px; border-radius:50%; cursor:pointer;" data-url="${p.url}">
                 `).join('')}
               </div>
             </div>
@@ -692,10 +698,29 @@ class AdminController {
     modalContainer.querySelector('#close-modal-btn')?.addEventListener('click', closeModal);
     modalContainer.querySelector('#cancel-modal-btn')?.addEventListener('click', closeModal);
 
+    // PC Image Upload File Picker
+    const fileInput = modalContainer.querySelector('#user-file-input');
+    const browseBtn = modalContainer.querySelector('#btn-browse-file');
+    const avatarInput = modalContainer.querySelector('#new-user-avatar');
+
+    browseBtn?.addEventListener('click', () => fileInput.click());
+
+    fileInput?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          avatarInput.value = evt.target.result;
+          this.showToast(`Uploaded image "${file.name}" from PC!`, 'success');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
     // Preset selection
     modalContainer.querySelectorAll('.avatar-preset-btn').forEach(img => {
       img.addEventListener('click', (e) => {
-        modalContainer.querySelector('#new-user-avatar').value = e.target.getAttribute('data-url');
+        avatarInput.value = e.target.getAttribute('data-url');
         this.showToast('Selected avatar photo preset', 'info');
       });
     });
@@ -706,7 +731,7 @@ class AdminController {
       const password = modalContainer.querySelector('#new-user-password').value.trim();
       const name = modalContainer.querySelector('#new-user-name').value.trim();
       const email = modalContainer.querySelector('#new-user-email').value.trim();
-      const avatar = modalContainer.querySelector('#new-user-avatar').value.trim();
+      const avatar = avatarInput.value.trim();
       const dept = modalContainer.querySelector('#new-user-dept').value;
       const role = modalContainer.querySelector('#new-user-role').value;
 
@@ -718,7 +743,7 @@ class AdminController {
     });
   }
 
-  // --- EDIT USER MODAL ---
+  // --- EDIT USER MODAL WITH IMAGE UPLOAD FROM PC ---
   openEditUserModal(userId) {
     const modalContainer = document.getElementById('admin-modal-container');
     if (!modalContainer) return;
@@ -737,7 +762,7 @@ class AdminController {
 
     modalContainer.innerHTML = `
       <div class="admin-modal-backdrop">
-        <div class="admin-modal" style="max-width:560px;">
+        <div class="admin-modal" style="max-width:580px;">
           <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:1.25rem;">
             <h3 style="margin:0; color:#fff; font-weight:800; font-size:1.2rem;">
               <i class="fa-solid fa-pen text-primary"></i> Edit Employee Profile: ${user.name}
@@ -768,12 +793,18 @@ class AdminController {
             </div>
 
             <div class="form-group" style="margin-bottom:1rem;">
-              <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;"><i class="fa-solid fa-image text-success"></i> Profile Photo / Avatar Image URL</label>
-              <input type="url" class="form-control" id="edit-user-avatar" value="${user.avatar || avatarPresets[0].url}">
-              <div style="display:flex; gap:0.5rem; margin-top:0.5rem; align-items:center;">
-                <span style="font-size:0.75rem; color:#94a3b8;">Click preset photo:</span>
-                ${avatarPresets.map((p, i) => `
-                  <img src="${p.url}" title="${p.label}" class="avatar-preset-btn" style="width:32px; height:32px; border-radius:50%; cursor:pointer; border:2px solid transparent;" data-url="${p.url}">
+              <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;"><i class="fa-solid fa-image text-success"></i> Profile Photo / Avatar Image</label>
+              <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem; align-items:center;">
+                <input type="text" class="form-control" id="edit-user-avatar" value="${user.avatar || avatarPresets[0].url}">
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-edit-browse-file" style="white-space:nowrap; padding:0.45rem 0.75rem;">
+                  <i class="fa-solid fa-folder-open text-primary"></i> Upload PC Image
+                </button>
+                <input type="file" id="edit-user-file-input" accept="image/*" style="display:none;">
+              </div>
+              <div style="display:flex; gap:0.5rem; align-items:center;">
+                <span style="font-size:0.75rem; color:#94a3b8;">Presets:</span>
+                ${avatarPresets.map(p => `
+                  <img src="${p.url}" title="${p.label}" class="avatar-preset-btn" style="width:28px; height:28px; border-radius:50%; cursor:pointer;" data-url="${p.url}">
                 `).join('')}
               </div>
             </div>
@@ -814,10 +845,29 @@ class AdminController {
     modalContainer.querySelector('#close-modal-btn')?.addEventListener('click', closeModal);
     modalContainer.querySelector('#cancel-modal-btn')?.addEventListener('click', closeModal);
 
+    // Edit PC Image Upload File Picker
+    const editFileInput = modalContainer.querySelector('#edit-user-file-input');
+    const editBrowseBtn = modalContainer.querySelector('#btn-edit-browse-file');
+    const editAvatarInput = modalContainer.querySelector('#edit-user-avatar');
+
+    editBrowseBtn?.addEventListener('click', () => editFileInput.click());
+
+    editFileInput?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          editAvatarInput.value = evt.target.result;
+          this.showToast(`Uploaded image "${file.name}" from PC!`, 'success');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
     // Preset selection
     modalContainer.querySelectorAll('.avatar-preset-btn').forEach(img => {
       img.addEventListener('click', (e) => {
-        modalContainer.querySelector('#edit-user-avatar').value = e.target.getAttribute('data-url');
+        editAvatarInput.value = e.target.getAttribute('data-url');
         this.showToast('Selected avatar photo preset', 'info');
       });
     });
@@ -828,7 +878,7 @@ class AdminController {
       const password = modalContainer.querySelector('#edit-user-password').value.trim();
       const name = modalContainer.querySelector('#edit-user-name').value.trim();
       const email = modalContainer.querySelector('#edit-user-email').value.trim();
-      const avatar = modalContainer.querySelector('#edit-user-avatar').value.trim();
+      const avatar = editAvatarInput.value.trim();
       const dept = modalContainer.querySelector('#edit-user-dept').value;
       const role = modalContainer.querySelector('#edit-user-role').value;
 
