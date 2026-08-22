@@ -48,6 +48,19 @@ class FirebaseService {
     }
   }
 
+  async updateUserPassword(userId, newPassword) {
+    try {
+      await fetch(`${this.baseUrl}/users/${userId}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ password: newPassword })
+      });
+      this.addAuditLog('Password Reset', `User ${userId} password updated in Cloud Database`);
+    } catch (e) {
+      console.warn("Firebase password update error:", e);
+    }
+  }
+
   async toggleUserStatus(userId, currentStatus) {
     try {
       const nextStatus = currentStatus === 'Active' ? 'Suspended' : 'Active';

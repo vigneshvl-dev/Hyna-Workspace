@@ -389,6 +389,19 @@ class StorageService {
     }
   }
 
+  updateUserPassword(userId, newPassword) {
+    const users = this.getUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      user.password = newPassword;
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+      this.addAuditLog('Password Reset', `Password updated for ${user.name} (${user.empId || user.id})`);
+      if (window.firebaseService) {
+        window.firebaseService.updateUserPassword(userId, newPassword);
+      }
+    }
+  }
+
   toggleUserStatus(userId) {
     const users = this.getUsers();
     const user = users.find(u => u.id === userId);

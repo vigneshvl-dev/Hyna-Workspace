@@ -13,6 +13,7 @@ class AppController {
 
   init() {
     document.addEventListener('DOMContentLoaded', () => {
+      this.auth.requireAuth();
       this.bindSidebar();
       this.updateUserProfile();
       this.updateNotificationBadge();

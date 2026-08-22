@@ -13,6 +13,7 @@ class AdminController {
 
   init() {
     document.addEventListener('DOMContentLoaded', () => {
+      this.auth.requireAdminAuth();
       // Check if we are running in standalone admin.html or index.html
       const container = document.getElementById('admin-portal-content') || document.getElementById('app-content');
       if (!container) return;
@@ -268,6 +269,8 @@ class AdminController {
             <thead>
               <tr>
                 <th>Employee</th>
+                <th>Employee ID</th>
+                <th>Login Password</th>
                 <th>Department</th>
                 <th>Current Role</th>
                 <th>Account Status</th>
@@ -285,6 +288,17 @@ class AdminController {
                         <div class="user-name">${u.name}</div>
                         <div class="user-email">${u.email}</div>
                       </div>
+                    </div>
+                  </td>
+                  <td>
+                    <span style="font-weight:700; color:#38bdf8; font-family:monospace;">${u.empId || 'EMP-001'}</span>
+                  </td>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:0.4rem;">
+                      <input type="text" class="form-control user-password-input" value="${u.password || 'admin123'}" style="padding:0.3rem 0.5rem; font-size:0.8rem; width:100px; font-family:monospace;">
+                      <button class="btn btn-secondary btn-sm btn-save-password" title="Save Password" style="padding:0.3rem 0.5rem;">
+                        <i class="fa-solid fa-floppy-disk text-success"></i>
+                      </button>
                     </div>
                   </td>
                   <td><span style="font-weight:600; color:#e2e8f0;">${u.department}</span></td>
@@ -325,6 +339,21 @@ class AdminController {
       const term = e.target.value.toLowerCase();
       container.querySelectorAll('#users-directory-table tbody tr').forEach(row => {
         row.style.display = row.innerText.toLowerCase().includes(term) ? '' : 'none';
+      });
+    });
+
+    // Save Password Event Listener
+    container.querySelectorAll('.btn-save-password').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const row = e.target.closest('tr');
+        const userId = row.getAttribute('data-user-id');
+        const newPass = row.querySelector('.user-password-input').value.trim();
+        if (!newPass) {
+          this.showToast('Password cannot be empty!', 'error');
+          return;
+        }
+        this.storage.updateUserPassword(userId, newPass);
+        this.showToast(`Password updated for user!`, 'success');
       });
     });
 
@@ -559,6 +588,17 @@ class AdminController {
           </div>
 
           <form id="add-user-form">
+            <div class="grid grid-2" style="gap:1rem; margin-bottom:1rem;">
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;">Employee ID</label>
+                <input type="text" class="form-control" id="new-user-empid" placeholder="e.g. EMP-002" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;">Login Password</label>
+                <input type="text" class="form-control" id="new-user-password" placeholder="Set password (e.g. user123)" required>
+              </div>
+            </div>
+
             <div class="form-group" style="margin-bottom:1rem;">
               <label class="form-label" style="font-size:0.85rem; color:#cbd5e1;">Full Name</label>
               <input type="text" class="form-control" id="new-user-name" placeholder="e.g. Jordan Miller" required>
@@ -607,13 +647,15 @@ class AdminController {
 
     modalContainer.querySelector('#add-user-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
-      const name = modalContainer.querySelector('#new-user-name').value;
-      const email = modalContainer.querySelector('#new-user-email').value;
+      const empId = modalContainer.querySelector('#new-user-empid').value.trim();
+      const password = modalContainer.querySelector('#new-user-password').value.trim();
+      const name = modalContainer.querySelector('#new-user-name').value.trim();
+      const email = modalContainer.querySelector('#new-user-email').value.trim();
       const dept = modalContainer.querySelector('#new-user-dept').value;
       const role = modalContainer.querySelector('#new-user-role').value;
 
-      this.storage.addUser({ name, email, department: dept, role });
-      this.showToast(`Created employee ${name} (${role})`, 'success');
+      this.storage.addUser({ empId, password, name, email, department: dept, role });
+      this.showToast(`Created employee ${name} (${empId})`, 'success');
       closeModal();
       const container = document.getElementById('admin-portal-content') || document.getElementById('app-content');
       if (container) this.navigate(this.currentView);
