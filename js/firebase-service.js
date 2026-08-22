@@ -96,6 +96,19 @@ class FirebaseService {
     }
   }
 
+  async updateUserName(userId, newName) {
+    try {
+      await fetch(`${this.baseUrl}/users/${userId}.json`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ name: newName })
+      });
+      this.addAuditLog('Name Updated', `User ${userId} name updated in Cloud Database`);
+    } catch (e) {
+      console.warn("Firebase name update error:", e);
+    }
+  }
+
   async toggleUserStatus(userId, currentStatus) {
     try {
       const nextStatus = currentStatus === 'Active' ? 'Suspended' : 'Active';

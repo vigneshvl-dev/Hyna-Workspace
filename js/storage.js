@@ -309,6 +309,9 @@ class StorageService {
         if (u.empId === 'EMP-001' || u.id === 'user-001') {
           if (u.role !== 'CEO' && u.role !== 'Super Admin' && u.role !== 'Admin') {
             u.role = 'CEO';
+            updated = true;
+          }
+          if (!u.name) {
             u.name = 'System Administrator';
             updated = true;
           }
@@ -456,6 +459,20 @@ class StorageService {
       this.addAuditLog('Gmail / Email Update', `Email updated for ${user.name} to ${newEmail}`);
       if (window.firebaseService) {
         window.firebaseService.updateUserEmail(userId, newEmail);
+      }
+    }
+  }
+
+  updateUserName(userId, newName) {
+    const users = this.getUsers();
+    const user = users.find(u => u.id === userId);
+    if (user) {
+      const oldName = user.name;
+      user.name = newName;
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+      this.addAuditLog('Name Updated', `Name updated from ${oldName} to ${newName}`);
+      if (window.firebaseService) {
+        window.firebaseService.updateUserName(userId, newName);
       }
     }
   }

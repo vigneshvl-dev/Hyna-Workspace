@@ -285,8 +285,13 @@ class AdminController {
                     <div class="user-cell">
                       <img src="${u.avatar}" alt="${u.name}" class="user-avatar-sm">
                       <div class="user-details">
-                        <div class="user-name">${u.name}</div>
-                        <div style="display:flex; align-items:center; gap:0.3rem; margin-top:0.2rem;">
+                        <div style="display:flex; align-items:center; gap:0.3rem;">
+                          <input type="text" class="form-control user-name-input" value="${u.name}" style="padding:0.2rem 0.4rem; font-size:0.85rem; font-weight:700; width:160px; color:#fff;">
+                          <button class="btn btn-secondary btn-sm btn-save-name" title="Save Employee Name" style="padding:0.2rem 0.4rem;">
+                            <i class="fa-solid fa-floppy-disk text-success"></i>
+                          </button>
+                        </div>
+                        <div style="display:flex; align-items:center; gap:0.3rem; margin-top:0.25rem;">
                           <input type="email" class="form-control user-email-input" value="${u.email}" style="padding:0.2rem 0.4rem; font-size:0.75rem; width:160px;">
                           <button class="btn btn-secondary btn-sm btn-save-email" title="Save Gmail / Email" style="padding:0.2rem 0.4rem;">
                             <i class="fa-solid fa-floppy-disk text-primary"></i>
@@ -350,6 +355,22 @@ class AdminController {
       const term = e.target.value.toLowerCase();
       container.querySelectorAll('#users-directory-table tbody tr').forEach(row => {
         row.style.display = row.innerText.toLowerCase().includes(term) ? '' : 'none';
+      });
+    });
+
+    // Save Employee Name Event Listener
+    container.querySelectorAll('.btn-save-name').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const row = e.target.closest('tr');
+        const userId = row.getAttribute('data-user-id');
+        const newName = row.querySelector('.user-name-input').value.trim();
+        if (!newName) {
+          this.showToast('Employee name cannot be empty!', 'error');
+          return;
+        }
+        this.storage.updateUserName(userId, newName);
+        this.showToast(`Name updated to "${newName}"`, 'success');
+        this.updateAdminProfile();
       });
     });
 
