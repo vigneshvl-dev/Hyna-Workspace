@@ -24,6 +24,15 @@ class AdminController {
       const initialHash = window.location.hash.replace('#', '') || 'overview';
       this.navigate(initialHash);
 
+      // Global event delegation for Add Employee button
+      document.addEventListener('click', (e) => {
+        const addBtn = e.target.closest('#btn-add-user-table, #btn-admin-add-user, .btn-open-add-user');
+        if (addBtn) {
+          e.preventDefault();
+          this.openAddUserModal();
+        }
+      });
+
       window.addEventListener('hashchange', () => {
         const route = window.location.hash.replace('#', '') || 'overview';
         this.navigate(route);
@@ -648,8 +657,12 @@ class AdminController {
 
   // --- ADD USER MODAL WITH IMAGE OPTION ---
   openAddUserModal() {
-    const modalContainer = document.getElementById('admin-modal-container');
-    if (!modalContainer) return;
+    let modalContainer = document.getElementById('admin-modal-container');
+    if (!modalContainer) {
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'admin-modal-container';
+      document.body.appendChild(modalContainer);
+    }
 
     const avatarPresets = [
       { label: 'Executive Male', url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80' },
@@ -797,8 +810,12 @@ class AdminController {
 
   // --- EDIT USER MODAL WITH IMAGE UPLOAD FROM PC ---
   openEditUserModal(userId) {
-    const modalContainer = document.getElementById('admin-modal-container');
-    if (!modalContainer) return;
+    let modalContainer = document.getElementById('admin-modal-container');
+    if (!modalContainer) {
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'admin-modal-container';
+      document.body.appendChild(modalContainer);
+    }
 
     const users = this.storage.getUsers();
     const user = users.find(u => u.id === userId);
