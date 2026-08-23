@@ -88,6 +88,12 @@
 
         <div class="nav-section-title">Governance & Security</div>
         <ul class="nav-list">
+          <li class="nav-item" data-admin-route="calendar">
+            <a href="#calendar">
+              <span class="nav-icon"><i class="fa-solid fa-calendar-days"></i></span>
+              <span>Event Calendar</span>
+            </a>
+          </li>
           <li class="nav-item" data-admin-route="attendance">
             <a href="#attendance">
               <span class="nav-icon"><i class="fa-solid fa-clock"></i></span>
@@ -145,6 +151,9 @@
       <!-- TOP HEADER NAVBAR -->
       <header class="admin-top-header">
         <div class="header-left">
+          <button class="mobile-menu-toggle sidebar-toggle-btn" id="admin-mobile-toggle" style="background:none; border:none; color:#fff; font-size:1.2rem; cursor:pointer; margin-right:0.75rem;">
+            <i class="fa-solid fa-bars"></i>
+          </button>
           <div class="admin-search-box">
             <i class="fa-solid fa-magnifying-glass"></i>
             <input type="text" id="admin-header-search" placeholder="Search employees, roles, logs, rules...">

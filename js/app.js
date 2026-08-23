@@ -112,13 +112,20 @@ class AppController {
 
   bindSidebar() {
     const sidebar = document.querySelector('.sidebar');
-    const toggleBtn = document.getElementById('mobile-menu-btn');
+    const toggleBtns = document.querySelectorAll('#mobile-menu-btn, #mobile-hamburger, .mobile-menu-toggle, .sidebar-toggle-btn');
     
-    if (toggleBtn && sidebar) {
-      toggleBtn.addEventListener('click', () => {
-        sidebar.classList.toggle('mobile-open');
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sidebar?.classList.toggle('mobile-open');
       });
-    }
+    });
+
+    document.addEventListener('click', (e) => {
+      if (sidebar && sidebar.classList.contains('mobile-open') && !sidebar.contains(e.target) && !e.target.closest('#mobile-menu-btn, #mobile-hamburger, .mobile-menu-toggle, .sidebar-toggle-btn')) {
+        sidebar.classList.remove('mobile-open');
+      }
+    });
   }
 
   updateUserProfile() {

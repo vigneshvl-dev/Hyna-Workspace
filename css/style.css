@@ -820,3 +820,95 @@ textarea.form-control {
   from { transform: translateX(100%); opacity: 0; }
   to { transform: translateX(0); opacity: 1; }
 }
+
+/* ==========================================================================
+   MOBILE & TABLET RESPONSIVE ALIGNMENT & BREAKPOINTS
+   ========================================================================== */
+@media (max-width: 992px) {
+  .grid-4, .grid-3 {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+}
+
+@media (max-width: 768px) {
+  /* Layout & Sidebar */
+  .sidebar {
+    transform: translateX(-100%);
+    width: 280px !important;
+  }
+  
+  .sidebar.mobile-open {
+    transform: translateX(0) !important;
+  }
+  
+  .main-wrapper {
+    margin-left: 0 !important;
+    width: 100% !important;
+  }
+
+  .top-header {
+    padding: 0 1rem !important;
+  }
+
+  .app-content {
+    padding: 1rem !important;
+  }
+
+  .page-header {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.75rem !important;
+  }
+
+  /* Grid Layouts to Single Column */
+  .grid-4, .grid-3, .grid-2, .kpi-grid, .dashboard-grid {
+    grid-template-columns: 1fr !important;
+  }
+
+  .hero-content-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
+  }
+
+  /* Attendance & Clock Widgets */
+  .attendance-hero-card {
+    grid-template-columns: 1fr !important;
+  }
+  
+  .attendance-stats-summary {
+    grid-template-columns: repeat(2, 1fr) !important;
+  }
+
+  /* Chat & Communication Mobile Alignment */
+  .communication-chat-card {
+    grid-template-columns: 1fr !important;
+    height: auto !important;
+    min-height: 520px;
+  }
+
+  /* Modals on Mobile */
+  .modal-card, .admin-modal {
+    width: 94vw !important;
+    max-width: 94vw !important;
+    padding: 1.25rem !important;
+    margin: 1rem auto !important;
+  }
+
+  /* Tables Scrollable */
+  .table-responsive {
+    width: 100%;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  /* Toast position */
+  .toast-container {
+    bottom: 1rem !important;
+    right: 1rem !important;
+    left: 1rem !important;
+  }
+
+  .toast {
+    width: 100% !important;
+  }
+}

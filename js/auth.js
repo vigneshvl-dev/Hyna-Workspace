@@ -58,7 +58,7 @@ class AuthService {
     }
     const currentUser = this.getCurrentUser();
     if (!currentUser || (currentUser.empId !== 'EMP-001' && currentUser.id !== 'user-001')) {
-      alert(`Access Denied: Only Employee ID EMP-001 (VIGNESH V L) is authorized to access the Admin Panel.`);
+      alert("You are restricted to login this under the privacy policy.");
       window.location.href = 'index.html#dashboard';
       return false;
     }

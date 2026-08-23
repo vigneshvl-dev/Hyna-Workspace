@@ -83,6 +83,9 @@ class AdminController {
       case 'attendance':
         this.renderAttendanceTab(container);
         break;
+      case 'calendar':
+        this.renderCalendarTab(container);
+        break;
       case 'audit':
         this.renderAuditLogsTab(container);
         break;
@@ -96,7 +99,21 @@ class AdminController {
   }
 
   bindAdminSidebar() {
-    // Sidebar active sync handled in navigate
+    const sidebar = document.querySelector('.admin-sidebar');
+    const toggleBtns = document.querySelectorAll('#admin-mobile-toggle, .admin-sidebar-toggle, .mobile-menu-toggle, #mobile-hamburger, #mobile-menu-btn');
+
+    toggleBtns.forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        sidebar?.classList.toggle('mobile-open');
+      });
+    });
+
+    document.addEventListener('click', (e) => {
+      if (sidebar && sidebar.classList.contains('mobile-open') && !sidebar.contains(e.target) && !e.target.closest('#admin-mobile-toggle, .admin-sidebar-toggle, .mobile-menu-toggle, #mobile-hamburger, #mobile-menu-btn')) {
+        sidebar.classList.remove('mobile-open');
+      }
+    });
   }
 
   updateAdminProfile() {
@@ -2153,6 +2170,227 @@ class AdminController {
           this.renderAttendanceTab(container);
         }
       });
+    });
+  }
+
+  // --- CALENDAR & SCHEDULE MANAGER TAB ---
+  renderCalendarTab(container) {
+    const events = this.storage.getCalendarEvents();
+
+    container.innerHTML = `
+      <div class="admin-header-banner">
+        <div class="admin-banner-top">
+          <div class="admin-banner-title">
+            <h2><i class="fa-solid fa-calendar-days text-primary"></i> Company Event Calendar & Schedule Manager</h2>
+            <p style="color:#94a3b8; font-size:0.9rem; margin-top:0.25rem;">Schedule, edit, and manage company milestones, team townhalls, sprint reviews, and module deadlines</p>
+          </div>
+          <button class="btn btn-primary" id="btn-open-add-event-modal">
+            <i class="fa-solid fa-calendar-plus"></i> Add New Event
+          </button>
+        </div>
+      </div>
+
+      <!-- Overview Cards -->
+      <div class="grid grid-3" style="gap: 1.25rem; margin-bottom: 1.5rem;">
+        <div class="card" style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem;">
+          <div style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="fa-solid fa-calendar-check"></i>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #fff;">${events.length}</div>
+            <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">Total Scheduled Events</div>
+          </div>
+        </div>
+
+        <div class="card" style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem;">
+          <div style="background: rgba(16, 185, 129, 0.15); color: #10b981; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="fa-solid fa-handshake"></i>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #fff;">${events.filter(e => e.type === 'Meeting' || e.type === 'Event').length}</div>
+            <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">Meetings & Townhalls</div>
+          </div>
+        </div>
+
+        <div class="card" style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem;">
+          <div style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="fa-solid fa-clock"></i>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #fff;">${events.filter(e => e.type === 'Deadline').length}</div>
+            <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">Project & Module Deadlines</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Schedule Directory Table -->
+      <div class="card">
+        <div class="card-header" style="display: flex; justify-content: space-between; align-items: center;">
+          <h3 class="card-title"><i class="fa-solid fa-list-check text-primary"></i> Scheduled Events & Milestones Directory</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Event Title</th>
+                <th>Category / Type</th>
+                <th>Target Date</th>
+                <th>Time Slot</th>
+                <th>Scheduled By</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${events.length === 0 ? `
+                <tr>
+                  <td colspan="6" style="text-align:center; color:#94a3b8; padding:2rem;">
+                    No events scheduled yet. Click "Add New Event" above to create one!
+                  </td>
+                </tr>
+              ` : events.map(ev => `
+                <tr>
+                  <td style="font-weight:700; color:#fff;">
+                    <i class="fa-solid ${ev.type === 'Meeting' ? 'fa-video text-primary' : ev.type === 'Deadline' ? 'fa-hourglass-half text-warning' : 'fa-star text-success'}" style="margin-right:0.4rem;"></i>
+                    ${ev.title}
+                  </td>
+                  <td>
+                    <span class="badge ${ev.type === 'Meeting' ? 'badge-primary' : ev.type === 'Deadline' ? 'badge-warning' : 'badge-success'}">
+                      ${ev.type}
+                    </span>
+                  </td>
+                  <td style="font-weight:600; color:#38bdf8;">${ev.date}</td>
+                  <td>${ev.time || 'All Day'}</td>
+                  <td style="font-size:0.85rem;">${ev.createdBy || 'Administrator'}</td>
+                  <td>
+                    <div style="display:flex; gap:0.4rem;">
+                      <button class="btn btn-sm btn-secondary btn-edit-event" data-event-id="${ev.id}" title="Edit Event Details">
+                        <i class="fa-solid fa-pen-to-square text-primary"></i> Edit
+                      </button>
+                      <button class="btn btn-sm btn-secondary btn-delete-event" data-event-id="${ev.id}" title="Delete Event">
+                        <i class="fa-solid fa-trash text-danger"></i>
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    container.querySelector('#btn-open-add-event-modal')?.addEventListener('click', () => {
+      this.openAddEditEventModal(null, container);
+    });
+
+    container.querySelectorAll('.btn-edit-event').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const evId = e.currentTarget.getAttribute('data-event-id');
+        this.openAddEditEventModal(evId, container);
+      });
+    });
+
+    container.querySelectorAll('.btn-delete-event').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const evId = e.currentTarget.getAttribute('data-event-id');
+        if (confirm('Are you sure you want to delete this scheduled event?')) {
+          const res = this.storage.deleteCalendarEvent(evId);
+          if (res.success) {
+            this.showToast('Event deleted from schedule', 'success');
+            this.renderCalendarTab(container);
+          }
+        }
+      });
+    });
+  }
+
+  openAddEditEventModal(eventId = null, container) {
+    let modalContainer = document.getElementById('admin-event-modal');
+    if (!modalContainer) {
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'admin-event-modal';
+      document.body.appendChild(modalContainer);
+    }
+
+    const events = this.storage.getCalendarEvents();
+    const ev = eventId ? events.find(e => e.id === eventId) : null;
+
+    modalContainer.innerHTML = `
+      <div class="admin-modal-backdrop">
+        <div class="admin-modal" style="max-width: 520px; border-radius: var(--radius-lg); background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="margin: 0; font-weight: 800; font-size: 1.15rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid ${ev ? 'fa-pen-to-square' : 'fa-calendar-plus'} text-primary"></i>
+              ${ev ? 'Edit Calendar Event' : 'Schedule New Event'}
+            </h3>
+            <button class="btn btn-secondary btn-sm" id="close-event-modal-btn" style="padding: 0.2rem 0.5rem;">&times;</button>
+          </div>
+
+          <form id="event-editor-form">
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label" style="font-size: 0.85rem; margin-bottom: 0.3rem; display: block;">Event Title</label>
+              <input type="text" id="event-title" class="form-control" value="${ev ? ev.title : ''}" placeholder="e.g. Q3 Architecture Sprint Review" required>
+            </div>
+
+            <div class="grid grid-2" style="gap: 1rem; margin-bottom: 1rem;">
+              <div class="form-group">
+                <label class="form-label" style="font-size: 0.85rem; margin-bottom: 0.3rem; display: block;">Target Date</label>
+                <input type="date" id="event-date" class="form-control" value="${ev ? ev.date : new Date().toISOString().split('T')[0]}" required>
+              </div>
+
+              <div class="form-group">
+                <label class="form-label" style="font-size: 0.85rem; margin-bottom: 0.3rem; display: block;">Category / Type</label>
+                <select id="event-type" class="form-control" required>
+                  <option value="Meeting" ${ev && ev.type === 'Meeting' ? 'selected' : ''}>Meeting / Sync</option>
+                  <option value="Deadline" ${ev && ev.type === 'Deadline' ? 'selected' : ''}>Deadline / Milestones</option>
+                  <option value="Event" ${ev && ev.type === 'Event' ? 'selected' : ''}>Company Event / Townhall</option>
+                  <option value="Holiday" ${ev && ev.type === 'Holiday' ? 'selected' : ''}>Official Holiday</option>
+                </select>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1rem;">
+              <label class="form-label" style="font-size: 0.85rem; margin-bottom: 0.3rem; display: block;">Time Slot</label>
+              <input type="text" id="event-time" class="form-control" value="${ev ? ev.time || '' : '10:00 AM'}" placeholder="e.g. 10:00 AM - 11:30 AM" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom: 1.25rem;">
+              <label class="form-label" style="font-size: 0.85rem; margin-bottom: 0.3rem; display: block;">Description / Agenda Notes</label>
+              <textarea id="event-desc" class="form-control" rows="2" placeholder="Agenda and attendance details...">${ev ? ev.description || '' : ''}</textarea>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+              <button type="button" class="btn btn-secondary" id="cancel-event-modal-btn">Cancel</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i> ${ev ? 'Save Changes' : 'Publish Event'}
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const closeModal = () => modalContainer.innerHTML = '';
+    modalContainer.querySelector('#close-event-modal-btn')?.addEventListener('click', closeModal);
+    modalContainer.querySelector('#cancel-event-modal-btn')?.addEventListener('click', closeModal);
+
+    modalContainer.querySelector('#event-editor-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = modalContainer.querySelector('#event-title').value.trim();
+      const date = modalContainer.querySelector('#event-date').value;
+      const type = modalContainer.querySelector('#event-type').value;
+      const time = modalContainer.querySelector('#event-time').value.trim();
+      const description = modalContainer.querySelector('#event-desc').value.trim();
+
+      if (ev) {
+        this.storage.updateCalendarEvent(ev.id, { title, date, type, time, description });
+        this.showToast(`Updated event "${title}"!`, 'success');
+      } else {
+        this.storage.addCalendarEvent({ title, date, type, time, description });
+        this.showToast(`Scheduled new event "${title}"!`, 'success');
+      }
+      closeModal();
+      this.renderCalendarTab(container);
     });
   }
 

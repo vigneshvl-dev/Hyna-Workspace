@@ -265,9 +265,6 @@ class StorageService {
     if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(DEFAULT_USERS));
     }
-    if (!localStorage.getItem(STORAGE_KEYS.CURRENT_USER_ID)) {
-      localStorage.setItem(STORAGE_KEYS.CURRENT_USER_ID, DEFAULT_USERS[0].id);
-    }
     if (!localStorage.getItem(STORAGE_KEYS.MODULES)) {
       localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(DEFAULT_MODULES));
     }
@@ -868,6 +865,62 @@ class StorageService {
   // --- Projects ---
   getProjects() {
     return JSON.parse(localStorage.getItem(STORAGE_KEYS.PROJECTS)) || [];
+  }
+
+  // --- Calendar Events ---
+  getCalendarEvents() {
+    let events = JSON.parse(localStorage.getItem(STORAGE_KEYS.EVENTS));
+    if (!events || !Array.isArray(events) || events.length === 0) {
+      events = DEFAULT_EVENTS;
+      localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
+    }
+    return events;
+  }
+
+  addCalendarEvent(eventData) {
+    const events = this.getCalendarEvents();
+    const newEvent = {
+      id: `ev-${Date.now()}`,
+      title: eventData.title || 'New Scheduled Event',
+      date: eventData.date || new Date().toISOString().split('T')[0],
+      time: eventData.time || '10:00 AM',
+      type: eventData.type || 'Meeting',
+      description: eventData.description || 'Calendar schedule event',
+      createdBy: this.getCurrentUser()?.name || 'Administrator'
+    };
+    events.unshift(newEvent);
+    localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
+    this.createNotification({
+      title: `New Calendar Event: ${newEvent.title}`,
+      message: `Event "${newEvent.title}" scheduled for ${newEvent.date} at ${newEvent.time}.`,
+      category: 'Calendar'
+    });
+    this.addAuditLog('Calendar Event Created', `Created event "${newEvent.title}" for ${newEvent.date}`);
+    return { success: true, event: newEvent };
+  }
+
+  updateCalendarEvent(eventId, eventData) {
+    const events = this.getCalendarEvents();
+    const index = events.findIndex(e => e.id === eventId);
+    if (index !== -1) {
+      events[index] = { ...events[index], ...eventData };
+      localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
+      this.addAuditLog('Calendar Event Updated', `Updated event "${events[index].title}" (${events[index].date})`);
+      return { success: true, event: events[index] };
+    }
+    return { success: false, error: 'Event not found' };
+  }
+
+  deleteCalendarEvent(eventId) {
+    let events = this.getCalendarEvents();
+    const ev = events.find(e => e.id === eventId);
+    if (ev) {
+      events = events.filter(e => e.id !== eventId);
+      localStorage.setItem(STORAGE_KEYS.EVENTS, JSON.stringify(events));
+      this.addAuditLog('Calendar Event Deleted', `Deleted event "${ev.title}"`);
+      return { success: true };
+    }
+    return { success: false, error: 'Event not found' };
   }
 
   // --- Notifications ---
