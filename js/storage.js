@@ -206,13 +206,7 @@ const DEFAULT_PROJECTS = [
   }
 ];
 
-const DEFAULT_ATTENDANCE = [
-  { date: '2026-08-22', checkIn: '09:12 AM', checkOut: '06:00 PM', workingTime: '8h 48m', status: 'Present' },
-  { date: '2026-08-21', checkIn: '09:08 AM', checkOut: '06:10 PM', workingTime: '9h 02m', status: 'Present' },
-  { date: '2026-08-20', checkIn: '09:15 AM', checkOut: '06:00 PM', workingTime: '8h 45m', status: 'Present' },
-  { date: '2026-08-19', checkIn: '09:00 AM', checkOut: '06:00 PM', workingTime: '9h 00m', status: 'Present' },
-  { date: '2026-08-18', checkIn: '09:15 AM', checkOut: '06:05 PM', workingTime: '8h 50m', status: 'Present' }
-];
+const DEFAULT_ATTENDANCE = [];
 
 const DEFAULT_NOTIFICATIONS = [
   {
@@ -659,8 +653,8 @@ class StorageService {
   // --- Attendance ---
   getAttendance() {
     let logs = JSON.parse(localStorage.getItem(STORAGE_KEYS.ATTENDANCE));
-    if (!logs || !Array.isArray(logs) || logs.length === 0 || logs.some(l => l.status === 'Leave')) {
-      logs = DEFAULT_ATTENDANCE;
+    if (logs === null || (Array.isArray(logs) && logs.some(l => l.date === '2026-08-22' || l.date === '2026-08-21'))) {
+      logs = [];
       localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(logs));
     }
     return logs;
