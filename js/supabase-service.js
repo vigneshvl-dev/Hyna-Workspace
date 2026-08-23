@@ -243,6 +243,88 @@ class SupabaseService {
       }
     }
   }
+
+  async seedInitialCloudData() {
+    if (!this.key || this.key.includes('YOUR_SUPABASE')) return;
+    const headers = {
+      'apikey': this.key,
+      'Authorization': `Bearer ${this.key}`,
+      'Content-Type': 'application/json',
+      'Prefer': 'return=minimal'
+    };
+
+    try {
+      // Check if users table is empty
+      const checkUsers = await fetch(`${this.restUrl}/users?select=id`, { headers }).then(r => r.ok ? r.json() : null);
+      if (checkUsers && checkUsers.length === 0 && window.DEFAULT_USERS) {
+        const payload = window.DEFAULT_USERS.map(u => ({
+          id: u.id,
+          emp_id: u.empId,
+          password: u.password,
+          name: u.name,
+          role: u.role,
+          department: u.department,
+          email: u.email,
+          avatar: u.avatar,
+          status: u.status
+        }));
+        await fetch(`${this.restUrl}/users`, { method: 'POST', headers, body: JSON.stringify(payload) });
+        console.log("🌱 [Supabase Cloud DB] Seeded staff roster into users table!");
+      }
+
+      // Check if modules table is empty
+      const checkMods = await fetch(`${this.restUrl}/modules?select=id`, { headers }).then(r => r.ok ? r.json() : null);
+      if (checkMods && checkMods.length === 0 && window.DEFAULT_MODULES) {
+        const payload = window.DEFAULT_MODULES.map(m => ({
+          id: m.id,
+          number: m.number,
+          title: m.title,
+          description: m.description,
+          assigned_date: m.assignedDate,
+          deadline: m.deadline,
+          progress: m.progress,
+          status: m.status,
+          instructor: m.instructor,
+          assigned_to: m.assignedTo,
+          unlocked: m.unlocked
+        }));
+        await fetch(`${this.restUrl}/modules`, { method: 'POST', headers, body: JSON.stringify(payload) });
+        console.log("🌱 [Supabase Cloud DB] Seeded training modules into modules table!");
+      }
+
+      // Check if documents table is empty
+      const checkDocs = await fetch(`${this.restUrl}/documents?select=id`, { headers }).then(r => r.ok ? r.json() : null);
+      if (checkDocs && checkDocs.length === 0 && window.DEFAULT_DOCUMENTS) {
+        const payload = window.DEFAULT_DOCUMENTS.map(d => ({
+          id: d.id,
+          name: d.name,
+          type: d.type,
+          uploaded_by: d.uploadedBy,
+          date: d.date,
+          size: d.size,
+          category: d.category
+        }));
+        await fetch(`${this.restUrl}/documents`, { method: 'POST', headers, body: JSON.stringify(payload) });
+        console.log("🌱 [Supabase Cloud DB] Seeded initial documents into documents table!");
+      }
+
+      // Check if events table is empty
+      const checkEvents = await fetch(`${this.restUrl}/events?select=id`, { headers }).then(r => r.ok ? r.json() : null);
+      if (checkEvents && checkEvents.length === 0 && window.DEFAULT_EVENTS) {
+        const payload = window.DEFAULT_EVENTS.map(e => ({
+          id: e.id,
+          title: e.title,
+          date: e.date,
+          time: e.time,
+          type: e.type
+        }));
+        await fetch(`${this.restUrl}/events`, { method: 'POST', headers, body: JSON.stringify(payload) });
+        console.log("🌱 [Supabase Cloud DB] Seeded scheduled events into events table!");
+      }
+    } catch (err) {
+      console.warn("Supabase seeding warning:", err);
+    }
+  }
 }
 
 window.supabaseService = new SupabaseService();
