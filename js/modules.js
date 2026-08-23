@@ -24,6 +24,8 @@ class ModuleController {
       return true;
     });
 
+    const activeMod = modules.find(m => m.status === 'Assigned' && m.unlocked) || modules.find(m => m.status === 'In Progress') || modules.find(m => m.status === 'Submitted') || modules[0];
+
     container.innerHTML = `
       <div class="page-header">
         <div class="page-title-group">
@@ -40,12 +42,30 @@ class ModuleController {
           </span>
         </div>
         <div class="progression-pipeline">
-          <div class="pipeline-step completed"><div class="pipeline-node"><i class="fa-solid fa-check"></i></div><span class="pipeline-label">Assigned</span></div>
-          <div class="pipeline-step active"><div class="pipeline-node">2</div><span class="pipeline-label">In Progress</span></div>
-          <div class="pipeline-step"><div class="pipeline-node">3</div><span class="pipeline-label">Submitted</span></div>
-          <div class="pipeline-step"><div class="pipeline-node">4</div><span class="pipeline-label">Under Review</span></div>
-          <div class="pipeline-step"><div class="pipeline-node">5</div><span class="pipeline-label">Approved</span></div>
-          <div class="pipeline-step"><div class="pipeline-node"><i class="fa-solid fa-lock-open"></i></div><span class="pipeline-label">Next Unlocked</span></div>
+          <div class="pipeline-step ${activeMod && activeMod.status !== 'Assigned' ? 'completed' : 'active'}">
+            <div class="pipeline-node">${activeMod && activeMod.status !== 'Assigned' ? '<i class="fa-solid fa-check"></i>' : '1'}</div>
+            <span class="pipeline-label">Assigned</span>
+          </div>
+          <div class="pipeline-step ${activeMod && activeMod.status === 'In Progress' ? 'active' : (activeMod && ['Submitted', 'Completed'].includes(activeMod.status) ? 'completed' : '')}">
+            <div class="pipeline-node">${activeMod && ['Submitted', 'Completed'].includes(activeMod.status) ? '<i class="fa-solid fa-check"></i>' : '2'}</div>
+            <span class="pipeline-label">In Progress</span>
+          </div>
+          <div class="pipeline-step ${activeMod && activeMod.status === 'Submitted' ? 'active' : (activeMod && activeMod.status === 'Completed' ? 'completed' : '')}">
+            <div class="pipeline-node">${activeMod && activeMod.status === 'Completed' ? '<i class="fa-solid fa-check"></i>' : '3'}</div>
+            <span class="pipeline-label">Submitted</span>
+          </div>
+          <div class="pipeline-step ${activeMod && activeMod.status === 'Submitted' ? 'active' : (activeMod && activeMod.status === 'Completed' ? 'completed' : '')}">
+            <div class="pipeline-node">${activeMod && activeMod.status === 'Completed' ? '<i class="fa-solid fa-check"></i>' : '4'}</div>
+            <span class="pipeline-label">Under Review</span>
+          </div>
+          <div class="pipeline-step ${activeMod && activeMod.status === 'Completed' ? 'completed' : ''}">
+            <div class="pipeline-node">${activeMod && activeMod.status === 'Completed' ? '<i class="fa-solid fa-check"></i>' : '5'}</div>
+            <span class="pipeline-label">Approved</span>
+          </div>
+          <div class="pipeline-step">
+            <div class="pipeline-node"><i class="fa-solid fa-lock-open"></i></div>
+            <span class="pipeline-label">Next Unlocked</span>
+          </div>
         </div>
       </div>
 
@@ -81,7 +101,7 @@ class ModuleController {
         <div class="module-card-header">
           <span class="module-number-badge">${m.number}</span>
           <span class="badge ${m.status === 'Completed' ? 'badge-success' : m.status === 'Submitted' ? 'badge-warning' : m.status === 'In Progress' ? 'badge-primary' : 'badge-neutral'}">
-            ${m.status}
+            ${m.status || 'Assigned'}
           </span>
         </div>
 
@@ -99,10 +119,10 @@ class ModuleController {
           </div>
           <div class="module-meta-row">
             <span>Progress:</span>
-            <span class="module-meta-val">${m.progress}%</span>
+            <span class="module-meta-val">${m.progress || 0}%</span>
           </div>
           <div class="progress-bar-container">
-            <div class="progress-bar-fill" style="width: ${m.progress}%"></div>
+            <div class="progress-bar-fill" style="width: ${m.progress || 0}%"></div>
           </div>
         </div>
 
@@ -114,6 +134,10 @@ class ModuleController {
           ` : m.status === 'Submitted' && isManager ? `
             <button class="btn btn-success btn-sm open-module-btn" data-id="${m.id}" style="width: 100%;">
               <i class="fa-solid fa-user-check"></i> Review & Approve Submission
+            </button>
+          ` : m.status === 'Assigned' ? `
+            <button class="btn btn-primary btn-sm open-module-btn" data-id="${m.id}" style="width: 100%;">
+              <i class="fa-solid fa-rocket"></i> Start Module (0%)
             </button>
           ` : `
             <button class="btn ${m.status === 'Completed' ? 'btn-secondary' : 'btn-primary'} btn-sm open-module-btn" data-id="${m.id}" style="width: 100%;">
@@ -136,24 +160,14 @@ class ModuleController {
     container.querySelectorAll('.open-module-btn').forEach(btn => {
       btn.addEventListener('click', (e) => {
         const modId = e.currentTarget.dataset.id;
-        this.openModuleDetailModal(modId);
+        this.openModuleDetailModal(modId, container);
       });
-    });
-
-    container.querySelector('#create-module-btn')?.addEventListener('click', () => {
-      this.openCreateModuleModal();
     });
   }
 
-  openModuleDetailModal(modId) {
+  openModuleDetailModal(modId, mainContainer = null) {
     let mod = this.storage.getModuleById(modId);
     if (!mod) return;
-
-    // If newly assigned at 0%, start module into In Progress on open
-    if (mod.status === 'Assigned' || !mod.status) {
-      this.storage.startModule(modId);
-      mod = this.storage.getModuleById(modId);
-    }
 
     const isManager = this.auth.isManagerOrAdmin();
 
@@ -192,8 +206,18 @@ class ModuleController {
             </div>
           ` : ''}
 
-          <!-- Submission Form for Employee or Review Form for Manager -->
-          ${mod.status === 'In Progress' ? `
+          <!-- Assigned 0% Action or Submission Form or Review Form -->
+          ${mod.status === 'Assigned' ? `
+            <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
+              <div class="card" style="background-color: rgba(56,189,248,0.1); border-color: rgba(56,189,248,0.3); padding: 1.25rem; margin-bottom: 1.25rem;">
+                <h4 style="font-size: 0.9rem; font-weight: 700; color: #38bdf8;"><i class="fa-solid fa-flag"></i> Module Assigned (0% Progress)</h4>
+                <p style="font-size: 0.85rem; color: var(--text-main); margin-top: 0.25rem;">Click "Start Module" to begin learning and unlock the submission pipeline.</p>
+              </div>
+              <button class="btn btn-primary btn-lg" id="btn-start-module-action" style="width: 100%;">
+                <i class="fa-solid fa-rocket"></i> 🚀 Start Module (0%)
+              </button>
+            </div>
+          ` : mod.status === 'In Progress' ? `
             <form id="module-submit-form" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
               <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem;"><i class="fa-solid fa-upload text-primary"></i> Submit Work for Admin Verification</h4>
               
@@ -280,6 +304,15 @@ class ModuleController {
           prevContainer.style.display = 'block';
         }
       }
+    });
+
+    document.getElementById('btn-start-module-action')?.addEventListener('click', () => {
+      this.storage.startModule(modId);
+      closeModal();
+      window.appController?.showToast('Module Started! Work submission form unlocked.', 'success');
+      const c = mainContainer || document.getElementById('app-content');
+      if (c) this.renderModulesView(c);
+      this.openModuleDetailModal(modId, c);
     });
 
     document.getElementById('module-submit-form')?.addEventListener('submit', (e) => {

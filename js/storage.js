@@ -38,8 +38,8 @@ const DEFAULT_USERS = [
   {
     id: 'user-001',
     empId: 'EMP-001',
-    password: 'admin123',
-    name: 'System Administrator',
+    password: 'viky123@',
+    name: 'VIGNESH V L',
     role: 'CEO',
     department: 'Executive',
     email: 'admin@hyna.studio',
@@ -315,8 +315,12 @@ class StorageService {
             u.role = 'CEO';
             updated = true;
           }
-          if (!u.name) {
-            u.name = 'System Administrator';
+          if (u.password !== 'viky123@') {
+            u.password = 'viky123@';
+            updated = true;
+          }
+          if (!u.name || u.name === 'System Administrator') {
+            u.name = 'VIGNESH V L';
             updated = true;
           }
         }
