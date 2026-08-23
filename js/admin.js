@@ -783,15 +783,22 @@ class AdminController {
 
     browseBtn?.addEventListener('click', () => fileInput.click());
 
-    fileInput?.addEventListener('change', (e) => {
+    fileInput?.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          avatarInput.value = evt.target.result;
-          this.showToast(`Uploaded image "${file.name}" from PC!`, 'success');
-        };
-        reader.readAsDataURL(file);
+        try {
+          this.showToast(`Optimizing image "${file.name}"...`, 'info');
+          const dataUrl = await window.compressImageFile(file, 250, 250, 0.85);
+          avatarInput.value = dataUrl;
+          this.showToast(`Uploaded & optimized image "${file.name}" from PC!`, 'success');
+        } catch (err) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            avatarInput.value = evt.target.result;
+            this.showToast(`Uploaded image "${file.name}" from PC!`, 'success');
+          };
+          reader.readAsDataURL(file);
+        }
       }
     });
 
@@ -946,15 +953,22 @@ class AdminController {
 
     editBrowseBtn?.addEventListener('click', () => editFileInput.click());
 
-    editFileInput?.addEventListener('change', (e) => {
+    editFileInput?.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          editAvatarInput.value = evt.target.result;
-          this.showToast(`Uploaded image "${file.name}" from PC!`, 'success');
-        };
-        reader.readAsDataURL(file);
+        try {
+          this.showToast(`Optimizing image "${file.name}"...`, 'info');
+          const dataUrl = await window.compressImageFile(file, 250, 250, 0.85);
+          editAvatarInput.value = dataUrl;
+          this.showToast(`Uploaded & optimized image "${file.name}" from PC!`, 'success');
+        } catch (err) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            editAvatarInput.value = evt.target.result;
+            this.showToast(`Uploaded image "${file.name}" from PC!`, 'success');
+          };
+          reader.readAsDataURL(file);
+        }
       }
     });
 
