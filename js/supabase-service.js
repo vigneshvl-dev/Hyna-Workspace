@@ -4,7 +4,7 @@
  */
 
 const SUPABASE_URL = 'https://gnjqbtkkijkffkfshwsw.supabase.co';
-const SUPABASE_ANON_KEY = 'YOUR_SUPABASE_ANON_KEY';
+const SUPABASE_ANON_KEY = 'sb_publishable_CLuGsWusuD6hsLPT5HhUqQ_24B5YSum';
 
 class SupabaseService {
   constructor() {
@@ -19,9 +19,11 @@ class SupabaseService {
     if (window.supabase && this.key && !this.key.includes('YOUR_SUPABASE')) {
       this.client = window.supabase.createClient(this.url, this.key);
       console.log("⚡ [Supabase Live Cloud DB] Initialized for " + this.url);
+      this.seedInitialCloudData();
       this.startRealtimeSync();
     } else {
       console.log("⚡ [Supabase Live REST] Endpoint set to " + this.restUrl);
+      this.seedInitialCloudData();
       this.startRestSync();
     }
   }
