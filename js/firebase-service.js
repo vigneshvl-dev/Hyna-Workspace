@@ -223,22 +223,23 @@ class FirebaseService {
   startCloudAutoSync() {
     if (this.syncTimer) return;
     
-    // Poll Cloud Database every 3 seconds to sync additions, edits & deletions across all devices in real-time
+    // Fast Poll Cloud Database every 1.5s to sync additions, edits & deletions across all devices in real-time
     this.syncTimer = setInterval(async () => {
       try {
-        const [users, modules, docs, events, msgs, att] = await Promise.all([
+        const [users, modules, docs, events, msgs, att, deletedUserIds] = await Promise.all([
           fetch(`${this.baseUrl}/users.json`).then(r => r.ok ? r.json() : null),
           fetch(`${this.baseUrl}/modules.json`).then(r => r.ok ? r.json() : null),
           fetch(`${this.baseUrl}/documents.json`).then(r => r.ok ? r.json() : null),
           fetch(`${this.baseUrl}/events.json`).then(r => r.ok ? r.json() : null),
           fetch(`${this.baseUrl}/messages.json`).then(r => r.ok ? r.json() : null),
-          fetch(`${this.baseUrl}/attendance.json`).then(r => r.ok ? r.json() : null)
+          fetch(`${this.baseUrl}/attendance.json`).then(r => r.ok ? r.json() : null),
+          fetch(`${this.baseUrl}/deleted_user_ids.json`).then(r => r.ok ? r.json() : null)
         ]);
 
         let viewNeedsRefresh = false;
 
-        if (users && Array.isArray(Object.values(users))) {
-          const list = Object.values(users);
+        if (users) {
+          const list = Array.isArray(users) ? users : Object.values(users);
           const currentStr = localStorage.getItem('hyna_users');
           if (JSON.stringify(list) !== currentStr) {
             localStorage.setItem('hyna_users', JSON.stringify(list));
@@ -246,8 +247,8 @@ class FirebaseService {
           }
         }
 
-        if (modules && Array.isArray(Object.values(modules))) {
-          const list = Object.values(modules);
+        if (modules) {
+          const list = Array.isArray(modules) ? modules : Object.values(modules);
           const currentStr = localStorage.getItem('hyna_modules');
           if (JSON.stringify(list) !== currentStr) {
             localStorage.setItem('hyna_modules', JSON.stringify(list));
@@ -255,8 +256,8 @@ class FirebaseService {
           }
         }
 
-        if (docs && Array.isArray(Object.values(docs))) {
-          const list = Object.values(docs);
+        if (docs) {
+          const list = Array.isArray(docs) ? docs : Object.values(docs);
           const currentStr = localStorage.getItem('hyna_documents');
           if (JSON.stringify(list) !== currentStr) {
             localStorage.setItem('hyna_documents', JSON.stringify(list));
@@ -264,8 +265,8 @@ class FirebaseService {
           }
         }
 
-        if (events && Array.isArray(Object.values(events))) {
-          const list = Object.values(events);
+        if (events) {
+          const list = Array.isArray(events) ? events : Object.values(events);
           const currentStr = localStorage.getItem('hyna_events');
           if (JSON.stringify(list) !== currentStr) {
             localStorage.setItem('hyna_events', JSON.stringify(list));
@@ -273,8 +274,8 @@ class FirebaseService {
           }
         }
 
-        if (msgs && Array.isArray(Object.values(msgs))) {
-          const list = Object.values(msgs);
+        if (msgs) {
+          const list = Array.isArray(msgs) ? msgs : Object.values(msgs);
           const currentStr = localStorage.getItem('hyna_messages');
           if (JSON.stringify(list) !== currentStr) {
             localStorage.setItem('hyna_messages', JSON.stringify(list));
@@ -282,11 +283,20 @@ class FirebaseService {
           }
         }
 
-        if (att && Array.isArray(Object.values(att))) {
-          const list = Object.values(att);
+        if (att) {
+          const list = Array.isArray(att) ? att : Object.values(att);
           const currentStr = localStorage.getItem('hyna_attendance');
           if (JSON.stringify(list) !== currentStr) {
             localStorage.setItem('hyna_attendance', JSON.stringify(list));
+            viewNeedsRefresh = true;
+          }
+        }
+
+        if (deletedUserIds) {
+          const list = Array.isArray(deletedUserIds) ? deletedUserIds : Object.values(deletedUserIds);
+          const currentStr = localStorage.getItem('hyna_deleted_user_ids');
+          if (JSON.stringify(list) !== currentStr) {
+            localStorage.setItem('hyna_deleted_user_ids', JSON.stringify(list));
             viewNeedsRefresh = true;
           }
         }
@@ -307,7 +317,7 @@ class FirebaseService {
       } catch (e) {
         // Silent background sync
       }
-    }, 3000);
+    }, 1500);
   }
 
   async syncModuleSubmission(modData) {

@@ -495,6 +495,7 @@ class StorageService {
     if (window.firebaseService) {
       window.firebaseService.deleteUser(userId);
       window.firebaseService.syncCollection('users', users);
+      window.firebaseService.syncCollection('deleted_user_ids', deletedIds);
     }
   }
 
