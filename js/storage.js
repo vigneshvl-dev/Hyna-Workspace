@@ -239,11 +239,7 @@ const DEFAULT_NOTIFICATIONS = [
   }
 ];
 
-const DEFAULT_MESSAGES = [
-  { id: 'm1', sender: 'Sarah Jenkins', avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150', text: 'Hey Alex, how is Module 03 JavaScript Async exercise coming along?', time: '10:15 AM', channel: 'general' },
-  { id: 'm2', sender: 'Alex Morgan', avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150', text: 'Going great! Working on the Promises & Storage integration layer right now.', time: '10:18 AM', channel: 'general' },
-  { id: 'm3', sender: 'David Chen', avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150', text: 'Reminder: Sprint demo is scheduled for Friday 3:00 PM.', time: '11:00 AM', channel: 'general' }
-];
+const DEFAULT_MESSAGES = [];
 
 const DEFAULT_DOCUMENTS = [
   { id: 'doc-1', name: 'Hyna_Studio_Employee_Handbook_2026.pdf', type: 'PDF', uploadedBy: 'Elena Rostova', date: '2026-08-01', size: '2.4 MB', category: 'Company Documents' },
@@ -721,7 +717,10 @@ class StorageService {
 
   // --- Chat Messages ---
   getMessages() {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.MESSAGES)) || [];
+    let msgs = JSON.parse(localStorage.getItem(STORAGE_KEYS.MESSAGES)) || [];
+    // Filter out legacy demo messages
+    msgs = msgs.filter(m => m.id !== 'm1' && m.id !== 'm2' && m.id !== 'm3');
+    return msgs;
   }
 
   sendMessage(text, channel = 'general') {
@@ -737,6 +736,21 @@ class StorageService {
     };
     msgs.push(newMsg);
     localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(msgs));
+
+    // Create system notification for workspace broadcast
+    this.createNotification({
+      title: `New Message in #${channel}`,
+      message: `${currentUser.name}: "${text.length > 55 ? text.substring(0, 52) + '...' : text}"`,
+      category: 'Communication'
+    });
+
+    this.addAuditLog('Team Message Posted', `${currentUser.name} posted message in #${channel}`);
+
+    // Sync to Cloud Database if connected
+    if (window.firebaseService) {
+      window.firebaseService.sendMessage(newMsg);
+    }
+
     return newMsg;
   }
 
