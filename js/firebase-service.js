@@ -180,6 +180,32 @@ class FirebaseService {
       console.warn("Audit log add error:", e);
     }
   }
+
+  async sendMessage(msgData) {
+    try {
+      const msgId = msgData.id || `m-${Date.now()}`;
+      await fetch(`${this.baseUrl}/messages/${msgId}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(msgData)
+      });
+    } catch (e) {
+      console.warn("Firebase send message error:", e);
+    }
+  }
+
+  async getMessages() {
+    try {
+      const res = await fetch(`${this.baseUrl}/messages.json`);
+      if (!res.ok) return null;
+      const data = await res.json();
+      if (!data) return null;
+      return Object.values(data);
+    } catch (e) {
+      console.warn("Firebase fetch messages error:", e);
+      return null;
+    }
+  }
 }
 
 window.firebaseService = new FirebaseService();
