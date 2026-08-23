@@ -486,6 +486,9 @@ class StorageService {
     if (targetUser) {
       this.addAuditLog('Employee Deleted', `${targetUser.name} (${targetUser.empId || userId}) removed from roster`);
     }
+    if (window.supabaseService) {
+      window.supabaseService.deleteUser(userId);
+    }
   }
 
   updateUserPassword(userId, newPassword) {
@@ -1238,8 +1241,8 @@ class StorageService {
     modules = modules.filter(m => m.id !== moduleId);
     localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(modules));
     this.addAuditLog('Module Deleted', `Deleted module "${mod.title}"`);
-    if (window.firebaseService) {
-      window.firebaseService.syncCollection('modules', modules);
+    if (window.supabaseService) {
+      window.supabaseService.deleteModule(moduleId);
     }
     return { success: true };
   }
@@ -1309,8 +1312,8 @@ class StorageService {
       docs = docs.filter(d => d.id !== docId);
       localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(docs));
       this.addAuditLog('Document Deleted', `Deleted file "${doc.name}"`);
-      if (window.firebaseService) {
-        window.firebaseService.deleteDocument(docId);
+      if (window.supabaseService) {
+        window.supabaseService.deleteDocument(docId);
       }
       return { success: true };
     }
