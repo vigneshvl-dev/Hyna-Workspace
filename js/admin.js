@@ -68,6 +68,15 @@ class AdminController {
       case 'modules':
         this.renderModulesTab(container);
         break;
+      case 'module-distribution':
+        this.renderModuleDistributionTab(container);
+        break;
+      case 'project-distribution':
+        this.renderProjectDistributionTab(container);
+        break;
+      case 'project-leads':
+        this.renderProjectLeadsTab(container);
+        break;
       case 'audit':
         this.renderAuditLogsTab(container);
         break;

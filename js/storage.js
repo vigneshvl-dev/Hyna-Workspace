@@ -17,7 +17,8 @@ const STORAGE_KEYS = {
   EVENTS: 'hyna_events',
   AUDIT_LOGS: 'hyna_audit_logs',
   ADMIN_SETTINGS: 'hyna_admin_settings',
-  CHANNELS: 'hyna_channels'
+  CHANNELS: 'hyna_channels',
+  MODULE_DISTRIBUTIONS: 'hyna_module_distributions'
 };
 
 const DEFAULT_AUDIT_LOGS = [
@@ -827,6 +828,99 @@ class StorageService {
     localStorage.setItem(STORAGE_KEYS.CHANNELS, JSON.stringify(channels));
     this.addAuditLog('Channel Created', `Channel #${cleanName} created`);
     return { success: true, channel: newChannel };
+  }
+
+  // --- Module & Project Distribution ---
+  getModuleDistributions() {
+    return JSON.parse(localStorage.getItem(STORAGE_KEYS.MODULE_DISTRIBUTIONS)) || [];
+  }
+
+  distributeModule(moduleId, targetUserIds = [], deadline = '', instructions = '') {
+    if (!moduleId) return { success: false, error: 'Please select a module to distribute.' };
+    if (!targetUserIds || targetUserIds.length === 0) {
+      return { success: false, error: 'Please select at least one employee to distribute to.' };
+    }
+
+    const modules = this.getModules();
+    const mod = modules.find(m => m.id === moduleId);
+    if (!mod) return { success: false, error: 'Selected module not found.' };
+
+    const users = this.getUsers();
+    const targetUsers = users.filter(u => targetUserIds.includes(u.id));
+    const targetNames = targetUsers.map(u => u.name).join(', ');
+
+    const distributions = this.getModuleDistributions();
+    const newDistribution = {
+      id: `dist-${Date.now()}`,
+      moduleId: mod.id,
+      moduleNumber: mod.number || 'Module',
+      moduleTitle: mod.title,
+      targetUserIds: targetUserIds,
+      targetUserNames: targetNames,
+      distributedBy: this.getCurrentUser()?.name || 'Administrator',
+      distributedDate: new Date().toISOString().split('T')[0],
+      deadline: deadline || mod.deadline || '2026-09-15',
+      instructions: instructions || 'Please complete assigned module exercises.',
+      status: 'Distributed'
+    };
+
+    distributions.unshift(newDistribution);
+    localStorage.setItem(STORAGE_KEYS.MODULE_DISTRIBUTIONS, JSON.stringify(distributions));
+
+    // Create notifications for targeted employees
+    targetUsers.forEach(user => {
+      this.createNotification({
+        title: `Module Distributed: ${mod.title}`,
+        message: `Module "${mod.title}" has been distributed to your account. Deadline: ${deadline || 'Upcoming'}.`,
+        category: 'Modules'
+      });
+    });
+
+    this.addAuditLog('Module Distributed', `Module "${mod.title}" distributed to ${targetUsers.length} employee(s) (${targetNames})`);
+    return { success: true, distribution: newDistribution, count: targetUsers.length };
+  }
+
+  distributeProject(projectId, leadUserId, memberUserIds = [], deadline = '', priority = 'High') {
+    if (!projectId) return { success: false, error: 'Please select a project to distribute.' };
+    const projects = this.getProjects();
+    const proj = projects.find(p => p.id === projectId);
+    if (!proj) return { success: false, error: 'Selected project not found.' };
+
+    const users = this.getUsers();
+    const leadUser = users.find(u => u.id === leadUserId);
+    const memberUsers = users.filter(u => memberUserIds.includes(u.id));
+    const memberNames = memberUsers.map(u => u.name);
+
+    if (leadUser && !memberNames.includes(leadUser.name)) {
+      memberNames.unshift(leadUser.name);
+    }
+
+    proj.lead = leadUser ? leadUser.name : (proj.lead || 'Project Lead');
+    proj.teamMembers = memberNames.length > 0 ? memberNames : proj.teamMembers;
+    if (deadline) proj.deadline = deadline;
+    proj.status = 'Active';
+
+    localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+
+    // Create notification
+    memberUsers.concat(leadUser ? [leadUser] : []).forEach(user => {
+      if (user) {
+        this.createNotification({
+          title: `Project Allocated: ${proj.name}`,
+          message: `Project "${proj.name}" has been assigned. Lead: ${proj.lead}. Deadline: ${proj.deadline}.`,
+          category: 'Projects'
+        });
+      }
+    });
+
+    this.addAuditLog('Project Distributed', `Project "${proj.name}" allocated to Lead (${proj.lead}) & ${memberUsers.length} members`);
+    return { success: true, project: proj };
+  }
+
+  getProjectLeads() {
+    const users = this.getUsers();
+    const leadRoles = ['Project Management Lead', 'Manager', 'VP of Product', 'Director', 'CEO', 'CTO', 'COO', 'CPO', 'CMO'];
+    return users.filter(u => leadRoles.includes(u.role));
   }
 
   // --- Documents ---
