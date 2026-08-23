@@ -746,7 +746,7 @@ class StorageService {
     return msgs;
   }
 
-  sendMessage(text, channel = 'general') {
+  sendMessage(text, channel = 'general', image = null, audio = null) {
     const currentUser = this.getCurrentUser();
     const msgs = this.getMessages();
 
@@ -755,7 +755,9 @@ class StorageService {
       userId: currentUser.id,
       sender: currentUser.name,
       avatar: currentUser.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
-      text: text,
+      text: text || '',
+      image: image || null,
+      audio: audio || null,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       channel: channel
     };
@@ -767,11 +769,11 @@ class StorageService {
       console.error("Storage error saving chat message:", e);
     }
 
-    // Create system notification for workspace broadcast
+    let notifText = text ? (text.length > 55 ? text.substring(0, 52) + '...' : text) : (image ? '📷 Sent an image attachment' : (audio ? '🎙️ Sent a voice note' : 'Sent a message'));
     try {
       this.createNotification({
         title: `New Message in #${channel}`,
-        message: `${currentUser.name}: "${text.length > 55 ? text.substring(0, 52) + '...' : text}"`,
+        message: `${currentUser.name}: "${notifText}"`,
         category: 'Communication'
       });
     } catch (e) {
