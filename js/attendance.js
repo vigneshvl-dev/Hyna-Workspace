@@ -52,17 +52,17 @@ class AttendanceController {
           </div>
           <div class="stat-box-item">
             <div class="stat-box-title">Present Days</div>
-            <div class="stat-box-value" style="color: var(--success);">18 Days</div>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Out of 20 working days</span>
+            <div class="stat-box-value" style="color: var(--success);">${logs.filter(l => ['Present', 'Checked In', 'Late Check In'].includes(l.status)).length} Day(s)</div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Recorded work days</span>
           </div>
           <div class="stat-box-item">
             <div class="stat-box-title">Total Hours Logged</div>
-            <div class="stat-box-value" style="color: #9333ea;">154.5 hrs</div>
-            <span style="font-size: 0.75rem; color: var(--text-muted);">Avg 8.1 hrs/day</span>
+            <div class="stat-box-value" style="color: #9333ea;">${(logs.filter(l => ['Present', 'Checked In', 'Late Check In'].includes(l.status)).length * 4.5).toFixed(1)} hrs</div>
+            <span style="font-size: 0.75rem; color: var(--text-muted);">Logged working time</span>
           </div>
           <div class="stat-box-item">
             <div class="stat-box-title">Leave Balance</div>
-            <div class="stat-box-value" style="color: var(--warning);">4 Days</div>
+            <div class="stat-box-value" style="color: var(--warning);">0 Days</div>
             <span style="font-size: 0.75rem; color: var(--text-muted);">Remaining paid leave</span>
           </div>
         </div>

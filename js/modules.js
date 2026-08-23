@@ -192,9 +192,43 @@ class ModuleController {
             <p style="font-size: 0.9rem; color: var(--text-main);">${mod.content || 'Complete instructions and push your repository changes.'}</p>
           </div>
 
+          <!-- Workspace Tools & Environment Selector -->
+          <div class="card" style="background-color: var(--bg-main); border: 1px solid var(--border-color); padding: 1.25rem; margin-bottom: 1.5rem;">
+            <h4 style="font-size: 0.85rem; font-weight: 700; margin-bottom: 0.5rem; color: var(--text-main);">
+              <i class="fa-solid fa-laptop-code text-primary"></i> Select Desktop Workspace Tool / Environment
+            </h4>
+            <p style="font-size: 0.8rem; color: var(--text-muted); margin-bottom: 1rem;">
+              Select the application you are using for this module to launch it on desktop and attach environment info to your submission:
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(3, 1fr); gap: 0.75rem;" id="workspace-tools-grid">
+              <button type="button" class="btn btn-secondary tool-select-btn active-tool-tile" data-tool="VS Code" data-url="https://vscode.dev" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; font-size: 0.85rem; border-radius: 8px; border: 1px solid #38bdf8;">
+                <i class="fa-solid fa-code" style="color: #007acc; font-size: 1.1rem;"></i> VS Code
+              </button>
+              <button type="button" class="btn btn-secondary tool-select-btn" data-tool="GitHub" data-url="https://github.com" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; font-size: 0.85rem; border-radius: 8px;">
+                <i class="fa-brands fa-github" style="color: #fff; font-size: 1.1rem;"></i> GitHub
+              </button>
+              <button type="button" class="btn btn-secondary tool-select-btn" data-tool="Google Antigravity" data-url="https://antigravity.google.com" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; font-size: 0.85rem; border-radius: 8px;">
+                <i class="fa-solid fa-wand-magic-sparkles" style="color: #a855f7; font-size: 1.1rem;"></i> Google Antigravity
+              </button>
+              <button type="button" class="btn btn-secondary tool-select-btn" data-tool="Canva" data-url="https://canva.com" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; font-size: 0.85rem; border-radius: 8px;">
+                <i class="fa-solid fa-palette" style="color: #00c4cc; font-size: 1.1rem;"></i> Canva
+              </button>
+              <button type="button" class="btn btn-secondary tool-select-btn" data-tool="Figma" data-url="https://figma.com" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; font-size: 0.85rem; border-radius: 8px;">
+                <i class="fa-brands fa-figma" style="color: #f24e1e; font-size: 1.1rem;"></i> Figma
+              </button>
+              <button type="button" class="btn btn-secondary tool-select-btn" data-tool="Excel Sheet" data-url="https://sheets.google.com" style="display: flex; align-items: center; justify-content: center; gap: 0.5rem; padding: 0.75rem; font-size: 0.85rem; border-radius: 8px;">
+                <i class="fa-solid fa-file-excel" style="color: #107c41; font-size: 1.1rem;"></i> Excel Sheet
+              </button>
+            </div>
+            <div id="selected-tool-badge" style="margin-top: 0.75rem; font-size: 0.8rem; font-weight: 700; color: #38bdf8;">
+              Active Environment: ${mod.selectedTool || 'VS Code'}
+            </div>
+          </div>
+
           ${mod.status === 'Submitted' ? `
             <div class="card" style="background-color: var(--warning-light); border-color: var(--warning-border); padding: 1.25rem; margin-bottom: 1.5rem;">
               <h4 style="font-size: 0.85rem; font-weight: 700; color: #b45309;"><i class="fa-solid fa-clock"></i> Submission Details (Under Review by Admin)</h4>
+              <p style="font-size: 0.85rem; margin-top: 0.25rem; color: #78350f;"><strong>Environment / Tool Used:</strong> <span class="badge badge-primary">${mod.selectedTool || 'VS Code'}</span></p>
               <p style="font-size: 0.85rem; margin-top: 0.25rem; color: #78350f;"><strong>Notes:</strong> ${mod.submissionText || 'Submission pending review'}</p>
               ${mod.submissionLink ? `<p style="font-size: 0.85rem; color: #78350f;"><strong>Link:</strong> <a href="${mod.submissionLink}" target="_blank">${mod.submissionLink}</a></p>` : ''}
               ${mod.submissionImage ? `
@@ -306,6 +340,26 @@ class ModuleController {
       }
     });
 
+    let selectedTool = mod.selectedTool || 'VS Code';
+    document.querySelectorAll('.tool-select-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const toolName = e.currentTarget.getAttribute('data-tool');
+        const toolUrl = e.currentTarget.getAttribute('data-url');
+        selectedTool = toolName;
+
+        document.querySelectorAll('.tool-select-btn').forEach(b => {
+          b.style.borderColor = 'var(--border-color)';
+        });
+        e.currentTarget.style.borderColor = '#38bdf8';
+
+        const badge = document.getElementById('selected-tool-badge');
+        if (badge) badge.innerText = `Active Environment: ${toolName} (Launching...)`;
+
+        window.open(toolUrl, '_blank');
+        window.appController?.showToast(`Selected ${toolName}. Application launched!`, 'info');
+      });
+    });
+
     document.getElementById('btn-start-module-action')?.addEventListener('click', () => {
       this.storage.startModule(modId);
       closeModal();
@@ -319,9 +373,9 @@ class ModuleController {
       e.preventDefault();
       const text = document.getElementById('submission-text').value;
       const link = document.getElementById('submission-link').value;
-      this.storage.submitModule(modId, text, link, pendingSubmissionImage);
+      this.storage.submitModule(modId, text, link, pendingSubmissionImage, selectedTool);
       closeModal();
-      window.appController?.showToast('Module & Verification Screenshot submitted for Admin review!', 'success');
+      window.appController?.showToast(`Module & Verification Screenshot (${selectedTool}) submitted for Admin review!`, 'success');
       window.appController?.navigate('modules');
     });
 

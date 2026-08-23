@@ -603,7 +603,7 @@ class StorageService {
     }
   }
 
-  submitModule(moduleId, submissionText, submissionLink, submissionImage = null) {
+  submitModule(moduleId, submissionText, submissionLink, submissionImage = null, selectedTool = null) {
     const modules = this.getModules();
     const index = modules.findIndex(m => m.id === moduleId);
     if (index !== -1) {
@@ -612,14 +612,15 @@ class StorageService {
       modules[index].submissionText = submissionText;
       modules[index].submissionLink = submissionLink;
       modules[index].submissionImage = submissionImage || null;
+      modules[index].selectedTool = selectedTool || modules[index].selectedTool || 'VS Code';
       localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(modules));
       
       this.createNotification({
         title: 'Module Submitted for Verification 📷',
-        message: `${modules[index].number} "${modules[index].title}" submitted with verification screenshot for Admin approval.`,
+        message: `${modules[index].number} "${modules[index].title}" submitted using ${modules[index].selectedTool} for Admin approval.`,
         category: 'Module'
       });
-      this.addAuditLog('Module Submitted', `Submitted ${modules[index].number} with verification image`);
+      this.addAuditLog('Module Submitted', `Submitted ${modules[index].number} using ${modules[index].selectedTool} with verification image`);
     }
   }
 

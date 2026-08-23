@@ -1095,11 +1095,55 @@ class AdminController {
       <div class="admin-header-banner">
         <div class="admin-banner-top">
           <div class="admin-banner-title">
-            <h2><i class="fa-solid fa-share-nodes text-primary"></i> Module Distribution Panel</h2>
-            <p style="color:#94a3b8; font-size:0.9rem; margin-top:0.25rem;">Distribute workspace modules to selected employees with target deadlines</p>
+            <h2><i class="fa-solid fa-share-nodes text-primary"></i> Module Distribution & Tool Audit Panel</h2>
+            <p style="color:#94a3b8; font-size:0.9rem; margin-top:0.25rem;">Distribute workspace modules, verify employee submissions, and inspect desktop tools used (VS Code, GitHub, Antigravity, Canva, Figma, Excel)</p>
           </div>
         </div>
       </div>
+
+      <!-- Pending Module Work Submissions Review Card -->
+      ${(() => {
+        const submittedMods = modules.filter(m => m.status === 'Submitted');
+        return `
+          <div class="card" style="margin-bottom: 1.5rem;">
+            <div class="card-header">
+              <h3 class="card-title"><i class="fa-solid fa-file-circle-check text-warning"></i> Pending Module Verification & Desktop Tool Audits (${submittedMods.length})</h3>
+            </div>
+            <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+              ${submittedMods.length === 0 ? `
+                <div style="text-align: center; color: #94a3b8; padding: 1.5rem;">
+                  No pending module work submissions for verification.
+                </div>
+              ` : submittedMods.map(m => `
+                <div style="padding: 1.25rem; background: rgba(15,23,42,0.8); border-radius: 10px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.75rem;">
+                  <div style="display: flex; justify-content: space-between; align-items: center;">
+                    <div>
+                      <span class="badge badge-primary" style="margin-right: 0.5rem;">${m.number}</span>
+                      <span style="font-weight: 700; color: #fff; font-size: 1rem;">${m.title}</span>
+                      <span class="badge badge-info" style="margin-left: 0.5rem; background: rgba(56,189,248,0.15); color: #38bdf8;">
+                        <i class="fa-solid fa-laptop-code"></i> Environment: ${m.selectedTool || 'VS Code'}
+                      </span>
+                    </div>
+                    <button class="btn btn-success btn-sm btn-approve-module-dist" data-module-id="${m.id}">
+                      <i class="fa-solid fa-check-circle"></i> Verify Image & Approve Module
+                    </button>
+                  </div>
+                  <div style="font-size: 0.85rem; color: #94a3b8;">
+                    <strong>Employee Submission Notes:</strong> ${m.submissionText || 'No notes provided'}
+                    ${m.submissionLink ? ` | <strong>PR/Repo Link:</strong> <a href="${m.submissionLink}" target="_blank" style="color:#38bdf8;">${m.submissionLink}</a>` : ''}
+                  </div>
+                  ${m.submissionImage ? `
+                    <div>
+                      <div style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; margin-bottom: 0.35rem;">Verification Screenshot Image:</div>
+                      <img src="${m.submissionImage}" alt="Verification Screenshot" style="max-width: 320px; max-height: 200px; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer;" onclick="window.open(this.src)">
+                    </div>
+                  ` : ''}
+                </div>
+              `).join('')}
+            </div>
+          </div>
+        `;
+      })()}
 
       <div class="card" style="margin-bottom: 1.5rem; background: var(--bg-card);">
         <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
@@ -1261,6 +1305,15 @@ class AdminController {
 
     container.querySelector('#btn-open-add-module-modal-dist')?.addEventListener('click', () => {
       this.openAddModuleModal(container);
+    });
+
+    container.querySelectorAll('.btn-approve-module-dist').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const modId = e.currentTarget.getAttribute('data-module-id');
+        this.storage.approveModule(modId);
+        this.showToast('Module verified & approved! Next module unlocked starting at 0%.', 'success');
+        this.renderModuleDistributionTab(container);
+      });
     });
 
     container.querySelectorAll('.btn-delete-module-dist').forEach(btn => {
