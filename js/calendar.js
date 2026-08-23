@@ -18,7 +18,7 @@ class CalendarController {
         </div>
       </div>
 
-      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 1.75rem;">
+      <div class="calendar-layout-grid">
         <div class="card">
           <div class="card-header">
             <h3 class="card-title"><i class="fa-regular fa-calendar-days text-primary"></i> August 2026</h3>
@@ -28,26 +28,33 @@ class CalendarController {
             </div>
           </div>
 
-          <!-- Calendar Grid -->
-          <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-weight: 700; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">
-            <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
-          </div>
-          <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;">
-            ${Array.from({ length: 31 }, (_, i) => {
-              const day = i + 1;
-              const dateStr = `2026-08-${day < 10 ? '0' + day : day}`;
-              const dayEvents = events.filter(e => e.date === dateStr);
-              return `
-                <div style="min-height: 70px; background-color: ${day === 22 ? 'var(--primary-light)' : 'var(--bg-main)'}; border: 1px solid ${day === 22 ? 'var(--primary)' : 'var(--border-color)'}; border-radius: var(--radius-md); padding: 0.35rem; text-align: right;">
-                  <span style="font-size: 0.8rem; font-weight: 700; color: ${day === 22 ? 'var(--primary)' : 'var(--text-main)'};">${day}</span>
-                  ${dayEvents.map(e => `
-                    <div class="badge ${e.type === 'Deadline' ? 'badge-danger' : e.type === 'Meeting' ? 'badge-primary' : 'badge-purple'}" style="display: block; font-size: 0.65rem; padding: 2px 4px; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;">
-                      ${e.title}
+          <!-- Responsive Touch Scroll Wrapper -->
+          <div class="table-responsive" style="overflow-x: auto; -webkit-overflow-scrolling: touch; border: none; padding-bottom: 0.5rem;">
+            <div style="min-width: 620px;">
+              <!-- Calendar Header Days -->
+              <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; text-align: center; font-weight: 700; font-size: 0.75rem; color: var(--text-muted); margin-bottom: 0.5rem;">
+                <div>SUN</div><div>MON</div><div>TUE</div><div>WED</div><div>THU</div><div>FRI</div><div>SAT</div>
+              </div>
+              
+              <!-- Calendar 31-Day Matrix -->
+              <div style="display: grid; grid-template-columns: repeat(7, 1fr); gap: 6px;">
+                ${Array.from({ length: 31 }, (_, i) => {
+                  const day = i + 1;
+                  const dateStr = `2026-08-${day < 10 ? '0' + day : day}`;
+                  const dayEvents = events.filter(e => e.date === dateStr);
+                  return `
+                    <div style="min-height: 75px; background-color: ${day === 22 ? 'var(--primary-light)' : 'var(--bg-main)'}; border: 1px solid ${day === 22 ? 'var(--primary)' : 'var(--border-color)'}; border-radius: var(--radius-md); padding: 0.4rem; text-align: right;">
+                      <span style="font-size: 0.8rem; font-weight: 700; color: ${day === 22 ? 'var(--primary)' : 'var(--text-main)'};">${day}</span>
+                      ${dayEvents.map(e => `
+                        <div class="badge ${e.type === 'Deadline' ? 'badge-danger' : e.type === 'Meeting' ? 'badge-primary' : 'badge-purple'}" style="display: block; font-size: 0.65rem; padding: 2px 4px; margin-top: 4px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; text-align: left;">
+                          ${e.title}
+                        </div>
+                      `).join('')}
                     </div>
-                  `).join('')}
-                </div>
-              `;
-            }).join('')}
+                  `;
+                }).join('')}
+              </div>
+            </div>
           </div>
         </div>
 

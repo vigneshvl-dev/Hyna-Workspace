@@ -27,16 +27,16 @@ class CommunicationController {
         </div>
       </div>
 
-      <div class="card" style="padding: 0; display: grid; grid-template-columns: 240px 1fr; height: 620px; overflow: hidden;">
+      <div class="card communication-chat-card" style="padding: 0; display: grid; grid-template-columns: 240px 1fr; height: 620px; overflow: hidden;">
         <!-- Channels Sidebar -->
-        <div style="background-color: var(--bg-main); border-right: 1px solid var(--border-color); padding: 1.25rem; display: flex; flex-direction: column;">
-          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
+        <div class="chat-channels-sidebar" style="background-color: var(--bg-main); border-right: 1px solid var(--border-color); padding: 1.25rem; display: flex; flex-direction: column;">
+          <div class="chat-channels-header" style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 0.85rem;">
             <h4 style="font-size: 0.75rem; font-weight: 700; color: var(--text-muted); text-transform: uppercase; margin: 0;">Channels</h4>
             <button id="btn-create-channel" title="Create New Channel" style="background: var(--primary-light); color: var(--primary); border: none; border-radius: var(--radius-full); width: 26px; height: 26px; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.75rem;">
               <i class="fa-solid fa-plus"></i>
             </button>
           </div>
-          <div style="display: flex; flex-direction: column; gap: 4px; flex: 1; overflow-y: auto;">
+          <div class="chat-channels-list" style="display: flex; flex-direction: column; gap: 4px; flex: 1; overflow-y: auto;">
             ${channels.map(c => `
               <button class="channel-btn ${this.activeChannel === c.id ? 'active' : ''}" data-channel="${c.id}" style="display: flex; align-items: center; gap: 0.5rem; padding: 0.6rem 0.85rem; border-radius: var(--radius-md); border: none; background: ${this.activeChannel === c.id ? 'var(--primary-light)' : 'transparent'}; color: ${this.activeChannel === c.id ? 'var(--primary)' : 'var(--text-main)'}; font-weight: 600; font-size: 0.85rem; cursor: pointer; text-align: left; width: 100%;">
                 <i class="fa-solid ${c.icon || 'fa-hashtag'}"></i> ${c.name}

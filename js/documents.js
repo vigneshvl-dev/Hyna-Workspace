@@ -70,6 +70,9 @@ class DocumentController {
                         <i class="fa-solid fa-eye text-primary"></i>
                       </button>
                     ` : ''}
+                    <button class="btn btn-secondary btn-sm delete-doc-btn" data-id="${d.id}" data-name="${d.name}" title="Delete Document">
+                      <i class="fa-solid fa-trash text-danger"></i>
+                    </button>
                   </td>
                 </tr>
               `).join('')}
@@ -97,6 +100,22 @@ class DocumentController {
       btn.addEventListener('click', (e) => {
         const url = e.currentTarget.dataset.url;
         if (url) window.open(url);
+      });
+    });
+
+    container.querySelectorAll('.delete-doc-btn').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const docId = e.currentTarget.dataset.id;
+        const docName = e.currentTarget.dataset.name;
+        if (confirm(`Are you sure you want to delete document "${docName}"?`)) {
+          const res = this.storage.deleteDocument(docId);
+          if (res.success) {
+            window.appController?.showToast(`Deleted document "${docName}"`, 'success');
+            this.renderDocumentsView(container);
+          } else {
+            window.appController?.showToast(res.error || 'Failed to delete document', 'error');
+          }
+        }
       });
     });
 

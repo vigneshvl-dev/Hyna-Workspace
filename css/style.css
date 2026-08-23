@@ -847,17 +847,70 @@ textarea.form-control {
   }
 
   .top-header {
-    padding: 0 1rem !important;
+    padding: 0 0.85rem !important;
+  }
+
+  .search-box {
+    width: 160px !important;
   }
 
   .app-content {
-    padding: 1rem !important;
+    padding: 0.85rem !important;
   }
 
   .page-header {
     flex-direction: column !important;
     align-items: flex-start !important;
     gap: 0.75rem !important;
+  }
+
+  .page-header > div:last-child {
+    width: 100% !important;
+    flex-wrap: wrap !important;
+  }
+
+  .page-header .btn {
+    flex: 1 1 auto !important;
+    font-size: 0.75rem !important;
+    padding: 0.5rem 0.75rem !important;
+    white-space: normal !important;
+  }
+
+  .hero-next-action-card {
+    padding: 1.25rem 1rem !important;
+  }
+
+  .hero-title {
+    font-size: 1.25rem !important;
+    line-height: 1.4 !important;
+    word-break: break-word !important;
+  }
+
+  .hero-description {
+    font-size: 0.85rem !important;
+  }
+
+  .hero-meta-row {
+    flex-direction: column !important;
+    align-items: flex-start !important;
+    gap: 0.5rem !important;
+  }
+
+  .hero-meta-item {
+    font-size: 0.8rem !important;
+    white-space: normal !important;
+    word-break: break-word !important;
+  }
+
+  .hero-action-box {
+    width: 100% !important;
+    margin-top: 1rem !important;
+    padding: 1rem !important;
+  }
+
+  .calendar-layout-grid {
+    grid-template-columns: 1fr !important;
+    gap: 1.25rem !important;
   }
 
   /* Grid Layouts to Single Column */
@@ -882,8 +935,66 @@ textarea.form-control {
   /* Chat & Communication Mobile Alignment */
   .communication-chat-card {
     grid-template-columns: 1fr !important;
+    grid-template-rows: auto 1fr !important;
     height: auto !important;
-    min-height: 520px;
+    min-height: 540px !important;
+  }
+
+  .chat-channels-sidebar {
+    border-right: none !important;
+    border-bottom: 1px solid var(--border-color) !important;
+    padding: 0.75rem 1rem !important;
+    flex-direction: row !important;
+    align-items: center !important;
+    gap: 0.75rem !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+  }
+
+  .chat-channels-header {
+    margin-bottom: 0 !important;
+    flex-shrink: 0 !important;
+  }
+
+  .chat-channels-header h4 {
+    display: none !important;
+  }
+
+  .chat-channels-list {
+    flex-direction: row !important;
+    flex-wrap: nowrap !important;
+    overflow-x: auto !important;
+    -webkit-overflow-scrolling: touch !important;
+    gap: 0.5rem !important;
+    flex: 1 !important;
+  }
+
+  .chat-channels-list .channel-btn {
+    width: auto !important;
+    white-space: nowrap !important;
+    padding: 0.4rem 0.75rem !important;
+    font-size: 0.8rem !important;
+  }
+
+  #chat-messages-container {
+    padding: 1rem !important;
+    min-height: 320px !important;
+  }
+
+  #chat-input-form {
+    padding: 0.75rem 1rem !important;
+  }
+
+  #chat-input-form > div {
+    flex-wrap: wrap !important;
+    gap: 0.4rem !important;
+  }
+
+  #chat-message-input {
+    width: 100% !important;
+    min-width: 100% !important;
+    order: -1 !important;
+    margin-bottom: 0.25rem !important;
   }
 
   /* Modals on Mobile */

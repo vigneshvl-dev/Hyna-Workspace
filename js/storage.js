@@ -123,58 +123,7 @@ const DEFAULT_MODULES = [
   }
 ];
 
-const DEFAULT_TASKS = [
-  {
-    id: 'task-101',
-    title: 'Refactor Navigation Component',
-    project: 'Hyna Workspace Web App',
-    assignedTo: 'Alex Morgan',
-    priority: 'High',
-    deadline: '2026-08-24',
-    status: 'In Progress',
-    progress: 60
-  },
-  {
-    id: 'task-102',
-    title: 'Implement Dark Mode Color Tokens',
-    project: 'Hyna Design System',
-    assignedTo: 'Alex Morgan',
-    priority: 'Medium',
-    deadline: '2026-08-26',
-    status: 'Pending',
-    progress: 0
-  },
-  {
-    id: 'task-103',
-    title: 'Optimize API Payload Caching',
-    project: 'Core Engine v2',
-    assignedTo: 'Alex Morgan',
-    priority: 'Urgent',
-    deadline: '2026-08-23',
-    status: 'Submitted',
-    progress: 90
-  },
-  {
-    id: 'task-104',
-    title: 'Setup Automated Visual Regression Tests',
-    project: 'Hyna Workspace Web App',
-    assignedTo: 'Sarah Jenkins',
-    priority: 'Medium',
-    deadline: '2026-08-30',
-    status: 'In Progress',
-    progress: 40
-  },
-  {
-    id: 'task-105',
-    title: 'Security Audit & JWT Rotation',
-    project: 'Auth Microservice',
-    assignedTo: 'David Chen',
-    priority: 'High',
-    deadline: '2026-08-22',
-    status: 'Completed',
-    progress: 100
-  }
-];
+const DEFAULT_TASKS = [];
 
 const DEFAULT_PROJECTS = [
   {
@@ -1255,6 +1204,18 @@ class StorageService {
     docs.unshift(newDoc);
     localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(docs));
     return newDoc;
+  }
+
+  deleteDocument(docId) {
+    let docs = this.getDocuments();
+    const doc = docs.find(d => d.id === docId);
+    if (doc) {
+      docs = docs.filter(d => d.id !== docId);
+      localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(docs));
+      this.addAuditLog('Document Deleted', `Deleted file "${doc.name}"`);
+      return { success: true };
+    }
+    return { success: false, error: 'Document not found' };
   }
 
   // --- Events / Calendar ---
