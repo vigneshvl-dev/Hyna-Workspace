@@ -92,9 +92,11 @@ class CommunicationController {
       });
     });
 
-    container.querySelector('#chat-input-form')?.addEventListener('submit', (e) => {
-      e.preventDefault();
-      const input = document.getElementById('chat-message-input');
+    const form = container.querySelector('#chat-input-form');
+    const handleSend = (e) => {
+      if (e) e.preventDefault();
+      const input = container.querySelector('#chat-message-input') || document.getElementById('chat-message-input');
+      if (!input) return;
       const text = input.value.trim();
       if (text) {
         this.storage.sendMessage(text, this.activeChannel);
@@ -102,7 +104,9 @@ class CommunicationController {
         this.renderCommunicationView(container);
         window.appController?.updateNotificationBadge();
       }
-    });
+    };
+
+    form?.addEventListener('submit', handleSend);
   }
 }
 
