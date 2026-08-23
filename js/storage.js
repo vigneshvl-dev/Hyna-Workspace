@@ -416,7 +416,14 @@ class StorageService {
     const userIndex = users.findIndex(u => u.id === userId);
     if (userIndex !== -1) {
       users[userIndex] = { ...users[userIndex], ...updatedData };
-      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+      try {
+        localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+      } catch (e) {
+        console.error("Storage error updating user profile:", e);
+        if (e.name === 'QuotaExceededError' || e.code === 22) {
+          alert('Storage quota exceeded! The uploaded image is too large. Please select a smaller photo or clear workspace storage.');
+        }
+      }
       this.addAuditLog('Employee Profile Updated', `${users[userIndex].name} (${users[userIndex].empId || userId})`);
       if (window.firebaseService) {
         window.firebaseService.updateUser(userId, updatedData);
@@ -760,3 +767,49 @@ class StorageService {
 
 // Global Storage Singleton Instance
 window.storageService = new StorageService();
+
+/**
+ * Utility function to resize & compress image files into lightweight Base64 Data URLs
+ * Prevents browser localStorage QuotaExceededError when uploading high-res PC images.
+ */
+window.compressImageFile = function(file, maxWidth = 250, maxHeight = 250, quality = 0.85) {
+  return new Promise((resolve, reject) => {
+    if (!file || !file.type || !file.type.startsWith('image/')) {
+      reject(new Error('Invalid image file selection'));
+      return;
+    }
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const img = new Image();
+      img.onload = () => {
+        const canvas = document.createElement('canvas');
+        let width = img.width;
+        let height = img.height;
+
+        if (width > height) {
+          if (width > maxWidth) {
+            height = Math.round((height * maxWidth) / width);
+            width = maxWidth;
+          }
+        } else {
+          if (height > maxHeight) {
+            width = Math.round((width * maxHeight) / height);
+            height = maxHeight;
+          }
+        }
+
+        canvas.width = width;
+        canvas.height = height;
+        const ctx = canvas.getContext('2d');
+        ctx.drawImage(img, 0, 0, width, height);
+
+        const dataUrl = canvas.toDataURL('image/jpeg', quality);
+        resolve(dataUrl);
+      };
+      img.onerror = (err) => reject(err);
+      img.src = e.target.result;
+    };
+    reader.onerror = (err) => reject(err);
+    reader.readAsDataURL(file);
+  });
+};
