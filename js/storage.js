@@ -566,7 +566,7 @@ class StorageService {
   // --- Modules ---
   getModules() {
     let mods = JSON.parse(localStorage.getItem(STORAGE_KEYS.MODULES));
-    if (!mods || mods.length === 0 || (mods[0] && mods[0].id === 'mod-01' && mods[0].status === 'Completed' && !mods[0].submissionText)) {
+    if (mods === null) {
       mods = DEFAULT_MODULES;
       localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(mods));
     }

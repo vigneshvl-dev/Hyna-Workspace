@@ -104,14 +104,19 @@ class TaskController {
                   <td>${t.assignedTo}</td>
                   <td><span class="badge ${t.priority === 'Urgent' ? 'badge-danger' : t.priority === 'High' ? 'badge-warning' : 'badge-primary'}">${t.priority}</span></td>
                   <td>${t.deadline}</td>
-                  <td><span class="badge ${t.status === 'Completed' ? 'badge-success' : 'badge-primary'}">${t.status}</span></td>
+                  <td><span class="badge ${t.status === 'Completed' ? 'badge-success' : t.status === 'Submitted' ? 'badge-warning' : 'badge-neutral'}">${t.status}</span></td>
                   <td>
-                    <select class="form-control status-select" data-id="${t.id}" style="padding: 0.2rem 0.5rem; font-size: 0.8rem;">
-                      <option value="Pending" ${t.status === 'Pending' ? 'selected' : ''}>Pending</option>
-                      <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
-                      <option value="Submitted" ${t.status === 'Submitted' ? 'selected' : ''}>Submitted</option>
-                      <option value="Completed" ${t.status === 'Completed' ? 'selected' : ''}>Completed</option>
-                    </select>
+                    <div style="display:flex; gap:0.4rem;">
+                      <button class="btn btn-sm btn-primary btn-open-task-modal" data-id="${t.id}">
+                        <i class="fa-solid fa-folder-open"></i> Open & Submit
+                      </button>
+                      <select class="form-control status-select" data-id="${t.id}" style="padding: 0.2rem 0.4rem; font-size: 0.75rem; width: 110px;">
+                        <option value="Pending" ${t.status === 'Pending' ? 'selected' : ''}>Pending</option>
+                        <option value="In Progress" ${t.status === 'In Progress' ? 'selected' : ''}>In Progress</option>
+                        <option value="Submitted" ${t.status === 'Submitted' ? 'selected' : ''}>Submitted</option>
+                        <option value="Completed" ${t.status === 'Completed' ? 'selected' : ''}>Completed</option>
+                      </select>
+                    </div>
                   </td>
                 </tr>
               `).join('')}
@@ -120,12 +125,11 @@ class TaskController {
         </div>
       </div>
     `;
-  }
-
-    container.querySelectorAll('.task-card').forEach(card => {
+  attachEvents(container) {
+    container.querySelectorAll('.task-card, .btn-open-task-modal').forEach(card => {
       card.addEventListener('click', (e) => {
         const taskId = e.currentTarget.dataset.id;
-        this.openTaskDetailModal(taskId, container);
+        if (taskId) this.openTaskDetailModal(taskId, container);
       });
     });
 
