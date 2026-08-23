@@ -1259,8 +1259,11 @@ class AdminController {
       </div>
 
       <div class="card">
-        <div class="card-header">
-          <h3 class="card-title"><i class="fa-solid fa-folder-tree text-primary"></i> Active Project Roster Allocations</h3>
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <h3 class="card-title"><i class="fa-solid fa-folder-tree text-primary"></i> Active Project Roster Allocations (${projects.length})</h3>
+          <button class="btn btn-primary btn-sm" id="btn-open-add-project-modal">
+            <i class="fa-solid fa-plus"></i> Add New Project
+          </button>
         </div>
         <div class="table-responsive">
           <table class="admin-table">
@@ -1272,10 +1275,17 @@ class AdminController {
                 <th>Progress</th>
                 <th>Deadline</th>
                 <th>Status</th>
+                <th>Actions</th>
               </tr>
             </thead>
             <tbody>
-              ${projects.map(p => `
+              ${projects.length === 0 ? `
+                <tr>
+                  <td colspan="7" style="text-align:center; color:#94a3b8; padding:2rem;">
+                    No projects found. Click "Add New Project" above to create one!
+                  </td>
+                </tr>
+              ` : projects.map(p => `
                 <tr>
                   <td style="font-weight:700; color:#fff;">${p.name}</td>
                   <td style="font-weight:700; color:#38bdf8;">
@@ -1295,6 +1305,11 @@ class AdminController {
                   </td>
                   <td>${p.deadline || '2026-09-30'}</td>
                   <td><span class="badge badge-success">${p.status}</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-danger btn-delete-project" data-project-id="${p.id}" title="Delete Project">
+                      <i class="fa-solid fa-trash"></i> Delete
+                    </button>
+                  </td>
                 </tr>
               `).join('')}
             </tbody>
@@ -1311,6 +1326,23 @@ class AdminController {
     };
 
     checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
+
+    container.querySelector('#btn-open-add-project-modal')?.addEventListener('click', () => {
+      this.openAddProjectModal(container);
+    });
+
+    container.querySelectorAll('.btn-delete-project').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const projId = e.currentTarget.getAttribute('data-project-id');
+        if (confirm("Are you sure you want to delete this project?")) {
+          const res = this.storage.deleteProject(projId);
+          if (res.success) {
+            this.showToast('Project deleted successfully!', 'success');
+            this.renderProjectDistributionTab(container);
+          }
+        }
+      });
+    });
 
     container.querySelector('#distribute-project-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
@@ -1431,6 +1463,161 @@ class AdminController {
         this.storage.updateUserRole(empId, newRole);
         this.showToast(`Assigned ${user.name} to ${newRole}!`, 'success');
         this.renderProjectLeadsTab(container);
+      }
+    });
+  }
+
+  openAddModuleModal(container) {
+    let modalContainer = document.getElementById('admin-add-module-modal');
+    if (!modalContainer) {
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'admin-add-module-modal';
+      document.body.appendChild(modalContainer);
+    }
+
+    const modules = this.storage.getModules();
+    const nextNum = `Module ${String(modules.length + 1).padStart(2, '0')}`;
+
+    modalContainer.innerHTML = `
+      <div class="admin-modal-backdrop">
+        <div class="admin-modal" style="max-width: 520px; border-radius: var(--radius-lg); background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="margin: 0; font-weight: 800; font-size: 1.15rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-plus-circle text-primary"></i> Create & Publish New Module
+            </h3>
+            <button class="btn btn-secondary btn-sm" id="close-add-mod-btn" style="padding: 0.2rem 0.5rem;">&times;</button>
+          </div>
+
+          <form id="add-module-form">
+            <div class="grid grid-2" style="gap:1rem; margin-bottom:1rem;">
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; margin-bottom:0.3rem; display:block;">Module Number</label>
+                <input type="text" id="new-mod-number" class="form-control" value="${nextNum}" required>
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; margin-bottom:0.3rem; display:block;">Instructor</label>
+                <input type="text" id="new-mod-instructor" class="form-control" value="Sarah Jenkins" required>
+              </div>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label" style="font-size:0.85rem; margin-bottom:0.3rem; display:block;">Module Title</label>
+              <input type="text" id="new-mod-title" class="form-control" placeholder="e.g. Advanced System Architecture" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label" style="font-size:0.85rem; margin-bottom:0.3rem; display:block;">Description</label>
+              <textarea id="new-mod-desc" class="form-control" rows="2" placeholder="Brief summary of module learning objectives..." required></textarea>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1.25rem;">
+              <label class="form-label" style="font-size:0.85rem; margin-bottom:0.3rem; display:block;">Target Deadline</label>
+              <input type="date" id="new-mod-deadline" class="form-control" value="2026-09-30" required>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+              <button type="button" class="btn btn-secondary" id="cancel-add-mod-btn">Cancel</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i> Publish Module
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const closeModal = () => modalContainer.innerHTML = '';
+    modalContainer.querySelector('#close-add-mod-btn')?.addEventListener('click', closeModal);
+    modalContainer.querySelector('#cancel-add-mod-btn')?.addEventListener('click', closeModal);
+
+    modalContainer.querySelector('#add-module-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const number = modalContainer.querySelector('#new-mod-number').value.trim();
+      const title = modalContainer.querySelector('#new-mod-title').value.trim();
+      const description = modalContainer.querySelector('#new-mod-desc').value.trim();
+      const instructor = modalContainer.querySelector('#new-mod-instructor').value.trim();
+      const deadline = modalContainer.querySelector('#new-mod-deadline').value;
+
+      const result = this.storage.addModule({ number, title, description, instructor, deadline });
+      if (result.success) {
+        closeModal();
+        this.showToast(`Published ${result.module.number} - ${result.module.title}!`, 'success');
+        this.navigate(this.currentView);
+      }
+    });
+  }
+
+  openAddProjectModal(container) {
+    let modalContainer = document.getElementById('admin-add-project-modal');
+    if (!modalContainer) {
+      modalContainer = document.createElement('div');
+      modalContainer.id = 'admin-add-project-modal';
+      document.body.appendChild(modalContainer);
+    }
+
+    const leads = this.storage.getProjectLeads();
+
+    modalContainer.innerHTML = `
+      <div class="admin-modal-backdrop">
+        <div class="admin-modal" style="max-width: 520px; border-radius: var(--radius-lg); background: var(--bg-card); border: 1px solid var(--border-color); padding: 1.5rem;">
+          <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.25rem;">
+            <h3 style="margin: 0; font-weight: 800; font-size: 1.15rem; color: var(--text-main); display: flex; align-items: center; gap: 0.5rem;">
+              <i class="fa-solid fa-plus-circle text-primary"></i> Create New Workspace Project
+            </h3>
+            <button class="btn btn-secondary btn-sm" id="close-add-proj-btn" style="padding: 0.2rem 0.5rem;">&times;</button>
+          </div>
+
+          <form id="add-project-form">
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label" style="font-size:0.85rem; margin-bottom:0.3rem; display:block;">Project Name</label>
+              <input type="text" id="new-proj-name" class="form-control" placeholder="e.g. AI Workflow Optimization Platform" required>
+            </div>
+
+            <div class="form-group" style="margin-bottom:1rem;">
+              <label class="form-label" style="font-size:0.85rem; margin-bottom:0.3rem; display:block;">Description</label>
+              <textarea id="new-proj-desc" class="form-control" rows="2" placeholder="Project goals and deliverables..." required></textarea>
+            </div>
+
+            <div class="grid grid-2" style="gap:1rem; margin-bottom:1rem;">
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; margin-bottom:0.3rem; display:block;">Assigned Project Lead</label>
+                <select id="new-proj-lead" class="form-control" required>
+                  ${leads.map(l => `<option value="${l.name}">${l.name} (${l.role})</option>`).join('')}
+                </select>
+              </div>
+              <div class="form-group">
+                <label class="form-label" style="font-size:0.85rem; margin-bottom:0.3rem; display:block;">Target Completion</label>
+                <input type="date" id="new-proj-deadline" class="form-control" value="2026-10-30" required>
+              </div>
+            </div>
+
+            <div style="display: flex; justify-content: flex-end; gap: 0.75rem; margin-top: 1.5rem;">
+              <button type="button" class="btn btn-secondary" id="cancel-add-proj-btn">Cancel</button>
+              <button type="submit" class="btn btn-primary">
+                <i class="fa-solid fa-check"></i> Create Project
+              </button>
+            </div>
+          </form>
+        </div>
+      </div>
+    `;
+
+    const closeModal = () => modalContainer.innerHTML = '';
+    modalContainer.querySelector('#close-add-proj-btn')?.addEventListener('click', closeModal);
+    modalContainer.querySelector('#cancel-add-proj-btn')?.addEventListener('click', closeModal);
+
+    modalContainer.querySelector('#add-project-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = modalContainer.querySelector('#new-proj-name').value.trim();
+      const description = modalContainer.querySelector('#new-proj-desc').value.trim();
+      const lead = modalContainer.querySelector('#new-proj-lead').value;
+      const deadline = modalContainer.querySelector('#new-proj-deadline').value;
+
+      const result = this.storage.addProject({ name, description, lead, deadline });
+      if (result.success) {
+        closeModal();
+        this.showToast(`Created project "${result.project.name}"!`, 'success');
+        this.navigate(this.currentView);
       }
     });
   }
