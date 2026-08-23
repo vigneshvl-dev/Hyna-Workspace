@@ -386,6 +386,7 @@ class AdminController {
         this.storage.updateUserName(userId, newName);
         this.showToast(`Name updated to "${newName}"`, 'success');
         this.updateAdminProfile();
+        window.appController?.updateUserProfile();
       });
     });
 
@@ -401,6 +402,8 @@ class AdminController {
         }
         this.storage.updateUserEmail(userId, newEmail);
         this.showToast(`Gmail/Email updated to "${newEmail}"`, 'success');
+        this.updateAdminProfile();
+        window.appController?.updateUserProfile();
       });
     });
 
@@ -416,6 +419,8 @@ class AdminController {
         }
         this.storage.updateUserPassword(userId, newPass);
         this.showToast(`Password updated for user!`, 'success');
+        this.updateAdminProfile();
+        window.appController?.updateUserProfile();
       });
     });
 
@@ -448,6 +453,8 @@ class AdminController {
         const newRole = e.target.value;
         this.storage.updateUserRole(userId, newRole);
         this.showToast(`Role updated to "${newRole}"`, 'success');
+        this.updateAdminProfile();
+        window.appController?.updateUserProfile();
         this.renderUsersTab(container);
       });
     });
@@ -970,7 +977,9 @@ class AdminController {
       const role = modalContainer.querySelector('#edit-user-role').value;
 
       this.storage.updateUser(userId, { empId, password, name, email, avatar, department: dept, role });
-      this.showToast(`Updated employee ${name}`, 'success');
+      this.updateAdminProfile();
+      window.appController?.updateUserProfile();
+      this.showToast(`Updated employee profile for ${name}`, 'success');
       closeModal();
       const container = document.getElementById('admin-portal-content') || document.getElementById('app-content');
       if (container) this.navigate(this.currentView);

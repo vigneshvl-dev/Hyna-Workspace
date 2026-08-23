@@ -154,6 +154,13 @@ class AppController {
 
   renderSettingsView(container) {
     const user = this.auth.getCurrentUser();
+    const avatarPresets = [
+      { label: 'Executive Male', url: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80' },
+      { label: 'Female Manager', url: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80' },
+      { label: 'Engineer Male', url: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80' },
+      { label: 'PM Lead', url: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80' },
+      { label: 'Director Female', url: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80' }
+    ];
 
     container.innerHTML = `
       <div class="page-header">
@@ -163,33 +170,67 @@ class AppController {
         </div>
       </div>
 
-      <div class="card" style="max-width: 600px; margin-bottom: 1.5rem;">
+      <div class="card" style="max-width: 650px; margin-bottom: 1.5rem;">
         <div class="card-header">
           <h3 class="card-title"><i class="fa-solid fa-user-gear text-primary"></i> Authenticated Employee Profile</h3>
         </div>
-        <div class="form-group">
-          <label class="form-label">Employee ID</label>
-          <input type="text" class="form-control" value="${user.empId || 'EMP-001'}" readonly>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Employee Name</label>
-          <input type="text" class="form-control" value="${user.name}" readonly>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Role Level</label>
-          <input type="text" class="form-control" value="${user.role}" readonly>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Department</label>
-          <input type="text" class="form-control" value="${user.department}" readonly>
-        </div>
-        <div class="form-group">
-          <label class="form-label">Corporate Email</label>
-          <input type="text" class="form-control" value="${user.email}" readonly>
-        </div>
+
+        <form id="user-profile-form">
+          <div style="display:flex; gap:1.25rem; align-items:center; margin-bottom:1.5rem; background:rgba(255,255,255,0.03); padding:1rem; border-radius:var(--radius-md);">
+            <img src="${user.avatar || avatarPresets[0].url}" alt="${user.name}" id="setting-avatar-preview" style="width:72px; height:72px; border-radius:50%; object-fit:cover; border:2px solid var(--primary-light);">
+            <div style="flex:1;">
+              <h4 style="margin:0 0 0.25rem 0; font-size:1.1rem; font-weight:700;">${user.name}</h4>
+              <p style="margin:0 0 0.5rem 0; font-size:0.85rem; color:var(--text-muted);">${user.department} &bull; ${user.role}</p>
+              <div style="display:flex; gap:0.5rem; align-items:center; flex-wrap:wrap;">
+                <button type="button" class="btn btn-secondary btn-sm" id="btn-setting-browse-file">
+                  <i class="fa-solid fa-folder-open text-primary"></i> Upload PC Photo
+                </button>
+                <input type="file" id="setting-user-file-input" accept="image/*" style="display:none;">
+                <span style="font-size:0.75rem; color:var(--text-muted);">Presets:</span>
+                ${avatarPresets.map(p => `
+                  <img src="${p.url}" title="${p.label}" class="setting-avatar-preset" style="width:28px; height:28px; border-radius:50%; cursor:pointer;" data-url="${p.url}">
+                `).join('')}
+              </div>
+            </div>
+          </div>
+
+          <input type="hidden" id="setting-user-avatar" value="${user.avatar || avatarPresets[0].url}">
+
+          <div style="display:grid; grid-template-columns:1fr 1fr; gap:1rem; margin-bottom:1rem;">
+            <div class="form-group">
+              <label class="form-label">Employee ID (System Assigned)</label>
+              <input type="text" class="form-control" value="${user.empId || 'EMP-001'}" readonly style="opacity:0.75; cursor:not-allowed;">
+            </div>
+            <div class="form-group">
+              <label class="form-label">Role Level (Assigned)</label>
+              <input type="text" class="form-control" value="${user.role}" readonly style="opacity:0.75; cursor:not-allowed;">
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label class="form-label">Full Employee Name</label>
+            <input type="text" class="form-control" id="setting-user-name" value="${user.name}" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom:1rem;">
+            <label class="form-label">Corporate Email Address</label>
+            <input type="email" class="form-control" id="setting-user-email" value="${user.email}" required>
+          </div>
+
+          <div class="form-group" style="margin-bottom:1.5rem;">
+            <label class="form-label">Login Security Password</label>
+            <input type="text" class="form-control" id="setting-user-password" value="${user.password || 'user123'}" required>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end;">
+            <button type="submit" class="btn btn-primary" id="btn-save-profile">
+              <i class="fa-solid fa-floppy-disk"></i> Save Profile Changes
+            </button>
+          </div>
+        </form>
       </div>
 
-      <div class="card" style="max-width: 600px;">
+      <div class="card" style="max-width: 650px;">
         <div class="card-header">
           <h3 class="card-title"><i class="fa-solid fa-database text-danger"></i> System Data Reset</h3>
         </div>
@@ -199,6 +240,56 @@ class AppController {
         </button>
       </div>
     `;
+
+    // File input avatar picker handler
+    const fileInput = container.querySelector('#setting-user-file-input');
+    const browseBtn = container.querySelector('#btn-setting-browse-file');
+    const avatarHiddenInput = container.querySelector('#setting-user-avatar');
+    const avatarPreview = container.querySelector('#setting-avatar-preview');
+
+    browseBtn?.addEventListener('click', () => fileInput.click());
+
+    fileInput?.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        const reader = new FileReader();
+        reader.onload = (evt) => {
+          const dataUrl = evt.target.result;
+          avatarHiddenInput.value = dataUrl;
+          if (avatarPreview) avatarPreview.src = dataUrl;
+          this.showToast(`Uploaded photo "${file.name}"`, 'success');
+        };
+        reader.readAsDataURL(file);
+      }
+    });
+
+    // Preset avatar click handler
+    container.querySelectorAll('.setting-avatar-preset').forEach(img => {
+      img.addEventListener('click', (e) => {
+        const url = e.target.getAttribute('data-url');
+        avatarHiddenInput.value = url;
+        if (avatarPreview) avatarPreview.src = url;
+        this.showToast('Selected avatar photo preset', 'info');
+      });
+    });
+
+    // Form submit - Save Profile Changes
+    container.querySelector('#user-profile-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const name = container.querySelector('#setting-user-name').value.trim();
+      const email = container.querySelector('#setting-user-email').value.trim();
+      const password = container.querySelector('#setting-user-password').value.trim();
+      const avatar = avatarHiddenInput.value.trim();
+
+      if (!name || !email || !password) {
+        this.showToast('Name, Email, and Password cannot be empty.', 'error');
+        return;
+      }
+
+      this.storage.updateUser(user.id, { name, email, password, avatar });
+      this.updateUserProfile();
+      this.showToast('Profile changes saved successfully!', 'success');
+    });
 
     container.querySelector('#reset-data-btn')?.addEventListener('click', () => {
       localStorage.clear();
