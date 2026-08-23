@@ -536,6 +536,7 @@ class AdminController {
   // --- VIEW 4: MODULE PUBLISHING ---
   renderModulesTab(container) {
     const modules = this.storage.getModules();
+    const submittedMods = modules.filter(m => m.status === 'Submitted');
 
     container.innerHTML = `
       <div class="card">
@@ -572,10 +573,54 @@ class AdminController {
           `).join('')}
         </div>
       </div>
+
+      <!-- Pending Submissions Verification Review Card -->
+      <div class="card" style="margin-top: 1.5rem;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-file-signature text-warning"></i> Pending Submissions Verification Screenshots (${submittedMods.length})</h3>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+          ${submittedMods.length === 0 ? `
+            <div style="text-align: center; color: #94a3b8; padding: 1.5rem;">
+              No pending module submissions for review.
+            </div>
+          ` : submittedMods.map(m => `
+            <div style="padding: 1.25rem; background: rgba(15,23,42,0.8); border-radius: 10px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.75rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <span class="badge badge-warning" style="margin-right: 0.5rem;">${m.number}</span>
+                  <span style="font-weight: 700; color: #fff; font-size: 1rem;">${m.title}</span>
+                </div>
+                <button class="btn btn-success btn-sm btn-approve-submission" data-module-id="${m.id}">
+                  <i class="fa-solid fa-check-circle"></i> Verify Image & Approve (Unlock Next at 0%)
+                </button>
+              </div>
+              <div style="font-size: 0.85rem; color: #94a3b8;">
+                <strong>Employee Summary:</strong> ${m.submissionText || 'No notes provided'}
+              </div>
+              ${m.submissionImage ? `
+                <div>
+                  <div style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; margin-bottom: 0.35rem;">Verification Screenshot Image:</div>
+                  <img src="${m.submissionImage}" alt="Verification Screenshot" style="max-width: 320px; max-height: 200px; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer;" onclick="window.open(this.src)">
+                </div>
+              ` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
     `;
 
     container.querySelector('#btn-open-add-module-modal')?.addEventListener('click', () => {
       this.openAddModuleModal(container);
+    });
+
+    container.querySelectorAll('.btn-approve-submission').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const modId = e.currentTarget.getAttribute('data-module-id');
+        this.storage.approveModule(modId);
+        this.showToast('Module verified & approved! Next module unlocked starting at 0%.', 'success');
+        this.renderModulesTab(container);
+      });
     });
 
     container.querySelectorAll('.btn-toggle-module').forEach(btn => {

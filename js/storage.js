@@ -716,6 +716,94 @@ class StorageService {
     return newTask;
   }
 
+  assignTask(taskData) {
+    const tasks = this.getTasks();
+    const users = this.getUsers();
+    const targetUsers = users.filter(u => (taskData.assignedToIds || []).includes(u.id));
+    const targetNames = targetUsers.map(u => u.name).join(', ') || taskData.assignedTo || 'Alex Morgan';
+
+    const newTask = {
+      id: `task-${Date.now()}`,
+      title: taskData.title || 'New Assigned Task',
+      project: taskData.project || 'Hyna Workspace Web App',
+      assignedTo: targetNames,
+      assignedToIds: taskData.assignedToIds || [],
+      priority: taskData.priority || 'High',
+      deadline: taskData.deadline || '2026-09-15',
+      status: 'Pending',
+      progress: 0,
+      assignedBy: this.getCurrentUser()?.name || 'Administrator',
+      assignedDate: new Date().toISOString().split('T')[0]
+    };
+
+    tasks.unshift(newTask);
+    localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
+
+    targetUsers.forEach(user => {
+      this.createNotification({
+        title: `New Task Assigned: ${newTask.title}`,
+        message: `Task "${newTask.title}" has been assigned to you. Deadline: ${newTask.deadline}.`,
+        category: 'Tasks'
+      });
+    });
+
+    this.addAuditLog('Task Assigned', `Assigned task "${newTask.title}" to ${targetNames}`);
+    return { success: true, task: newTask, count: targetUsers.length };
+  }
+
+  submitTask(taskId, submissionText, submissionLink, submissionImage = null) {
+    const tasks = this.getTasks();
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      task.status = 'Submitted';
+      task.progress = 85;
+      task.submissionText = submissionText;
+      task.submissionLink = submissionLink;
+      task.submissionImage = submissionImage || null;
+      localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
+
+      this.createNotification({
+        title: `Task Work Submitted 📷`,
+        message: `Task "${task.title}" submitted by ${task.assignedTo} with verification screenshot for Admin approval.`,
+        category: 'Tasks'
+      });
+      this.addAuditLog('Task Submitted', `Task "${task.title}" submitted with verification image`);
+      return { success: true, task };
+    }
+    return { success: false, error: 'Task not found' };
+  }
+
+  approveTask(taskId) {
+    const tasks = this.getTasks();
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      task.status = 'Completed';
+      task.progress = 100;
+      localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
+
+      this.createNotification({
+        title: `Task Verified & Approved! 🎉`,
+        message: `Admin verified and approved task "${task.title}". Status: Completed!`,
+        category: 'Tasks'
+      });
+      this.addAuditLog('Task Approved', `Admin approved task "${task.title}"`);
+      return { success: true, task };
+    }
+    return { success: false, error: 'Task not found' };
+  }
+
+  deleteTask(taskId) {
+    let tasks = this.getTasks();
+    const task = tasks.find(t => t.id === taskId);
+    if (task) {
+      tasks = tasks.filter(t => t.id !== taskId);
+      localStorage.setItem(STORAGE_KEYS.TASKS, JSON.stringify(tasks));
+      this.addAuditLog('Task Deleted', `Deleted task "${task.title}"`);
+      return { success: true };
+    }
+    return { success: false, error: 'Task not found' };
+  }
+
   updateTaskStatus(taskId, status) {
     const tasks = this.getTasks();
     const task = tasks.find(t => t.id === taskId);

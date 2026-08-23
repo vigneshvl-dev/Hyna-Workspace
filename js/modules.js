@@ -146,8 +146,14 @@ class ModuleController {
   }
 
   openModuleDetailModal(modId) {
-    const mod = this.storage.getModuleById(modId);
+    let mod = this.storage.getModuleById(modId);
     if (!mod) return;
+
+    // If newly assigned at 0%, start module into In Progress on open
+    if (mod.status === 'Assigned' || !mod.status) {
+      this.storage.startModule(modId);
+      mod = this.storage.getModuleById(modId);
+    }
 
     const isManager = this.auth.isManagerOrAdmin();
 
@@ -174,32 +180,51 @@ class ModuleController {
 
           ${mod.status === 'Submitted' ? `
             <div class="card" style="background-color: var(--warning-light); border-color: var(--warning-border); padding: 1.25rem; margin-bottom: 1.5rem;">
-              <h4 style="font-size: 0.85rem; font-weight: 700; color: #b45309;"><i class="fa-solid fa-clock"></i> Submission Details (Under Review)</h4>
+              <h4 style="font-size: 0.85rem; font-weight: 700; color: #b45309;"><i class="fa-solid fa-clock"></i> Submission Details (Under Review by Admin)</h4>
               <p style="font-size: 0.85rem; margin-top: 0.25rem; color: #78350f;"><strong>Notes:</strong> ${mod.submissionText || 'Submission pending review'}</p>
               ${mod.submissionLink ? `<p style="font-size: 0.85rem; color: #78350f;"><strong>Link:</strong> <a href="${mod.submissionLink}" target="_blank">${mod.submissionLink}</a></p>` : ''}
+              ${mod.submissionImage ? `
+                <div style="margin-top: 0.75rem;">
+                  <label style="font-size: 0.8rem; font-weight: 700; color: #78350f; display: block; margin-bottom: 0.25rem;">Attached Verification Screenshot:</label>
+                  <img src="${mod.submissionImage}" alt="Verification Screenshot" style="max-width: 280px; max-height: 180px; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer;" onclick="window.open(this.src)">
+                </div>
+              ` : ''}
             </div>
           ` : ''}
 
           <!-- Submission Form for Employee or Review Form for Manager -->
           ${mod.status === 'In Progress' ? `
             <form id="module-submit-form" style="border-top: 1px solid var(--border-color); padding-top: 1.5rem;">
-              <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem;"><i class="fa-solid fa-upload text-primary"></i> Submit Work for Review</h4>
-              <div class="form-group">
-                <label class="form-label">Submission Summary / Notes</label>
+              <h4 style="font-size: 0.95rem; font-weight: 700; margin-bottom: 1rem;"><i class="fa-solid fa-upload text-primary"></i> Submit Work for Admin Verification</h4>
+              
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label class="form-label" style="font-weight: 700;">Submission Summary / Notes</label>
                 <textarea class="form-control" id="submission-text" required placeholder="Describe your completed work, code changes, and test verification..."></textarea>
               </div>
-              <div class="form-group">
+
+              <div class="form-group" style="margin-bottom: 1rem;">
+                <label class="form-label" style="font-weight: 700;">
+                  <i class="fa-solid fa-image text-primary"></i> Attach Verification Screenshot / Image
+                </label>
+                <input type="file" id="submission-image-picker" accept="image/*" class="form-control" style="padding: 0.4rem;">
+                <div id="submission-image-preview-container" style="display: none; margin-top: 0.5rem;">
+                  <img id="submission-image-preview" style="max-width: 220px; max-height: 140px; border-radius: 8px; border: 1px solid var(--border-color); object-fit: cover;">
+                </div>
+              </div>
+
+              <div class="form-group" style="margin-bottom: 1.25rem;">
                 <label class="form-label">Repository or PR Link (Optional)</label>
                 <input type="url" class="form-control" id="submission-link" placeholder="https://github.com/hyna-studio/repo/pull/42">
               </div>
+
               <button type="submit" class="btn btn-primary" style="width: 100%;">
-                <i class="fa-solid fa-paper-plane"></i> Submit Module for Review
+                <i class="fa-solid fa-paper-plane"></i> Submit Module & Verification Image to Admin
               </button>
             </form>
           ` : mod.status === 'Submitted' && isManager ? `
             <div style="border-top: 1px solid var(--border-color); padding-top: 1.5rem; display: flex; gap: 1rem;">
               <button class="btn btn-success btn-lg" id="approve-module-btn" style="flex: 1;">
-                <i class="fa-solid fa-check-circle"></i> Approve Module & Unlock Next
+                <i class="fa-solid fa-check-circle"></i> Verify & Approve Module (Unlock Next at 0%)
               </button>
             </div>
           ` : mod.status === 'Completed' ? `
@@ -225,20 +250,52 @@ class ModuleController {
       if (e.target === overlay) closeModal();
     });
 
+    let pendingSubmissionImage = null;
+    const imgPicker = document.getElementById('submission-image-picker');
+    imgPicker?.addEventListener('change', async (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        try {
+          const dataUrl = await window.compressImageFile(file, 600, 600, 0.8);
+          pendingSubmissionImage = dataUrl;
+        } catch (err) {
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            pendingSubmissionImage = evt.target.result;
+            const prevContainer = document.getElementById('submission-image-preview-container');
+            const prevImg = document.getElementById('submission-image-preview');
+            if (prevContainer && prevImg) {
+              prevImg.src = pendingSubmissionImage;
+              prevContainer.style.display = 'block';
+            }
+          };
+          reader.readAsDataURL(file);
+          return;
+        }
+
+        const prevContainer = document.getElementById('submission-image-preview-container');
+        const prevImg = document.getElementById('submission-image-preview');
+        if (prevContainer && prevImg) {
+          prevImg.src = pendingSubmissionImage;
+          prevContainer.style.display = 'block';
+        }
+      }
+    });
+
     document.getElementById('module-submit-form')?.addEventListener('submit', (e) => {
       e.preventDefault();
       const text = document.getElementById('submission-text').value;
       const link = document.getElementById('submission-link').value;
-      this.storage.submitModule(modId, text, link);
+      this.storage.submitModule(modId, text, link, pendingSubmissionImage);
       closeModal();
-      window.appController?.showToast('Module submitted for Manager review!', 'success');
+      window.appController?.showToast('Module & Verification Screenshot submitted for Admin review!', 'success');
       window.appController?.navigate('modules');
     });
 
     document.getElementById('approve-module-btn')?.addEventListener('click', () => {
       this.storage.approveModule(modId);
       closeModal();
-      window.appController?.showToast('Module approved! Next module unlocked.', 'success');
+      window.appController?.showToast('Module approved! Next module unlocked starting at 0%.', 'success');
       window.appController?.navigate('modules');
     });
   }

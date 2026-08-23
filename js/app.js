@@ -17,6 +17,16 @@ class AppController {
       this.bindSidebar();
       this.updateUserProfile();
       this.updateNotificationBadge();
+
+      // One-time daily attendance check-in trigger
+      try {
+        const attRes = this.storage.recordDailyAttendance();
+        if (attRes && attRes.isNew) {
+          this.showToast(`Daily Attendance Recorded! Checked in for today at ${attRes.log.checkIn}.`, 'success');
+        }
+      } catch (e) {
+        console.warn("Auto attendance error:", e);
+      }
       
       // Hash-based routing initial check
       const initialHash = window.location.hash.replace('#', '');
