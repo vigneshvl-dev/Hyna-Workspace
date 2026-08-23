@@ -52,7 +52,7 @@ class CommunicationController {
               </div>
             ` : messages.map(m => `
               <div style="display: flex; gap: 0.85rem;">
-                <img src="${m.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}" style="width: 38px; height: 38px; border-radius: var(--radius-full); object-fit: cover;">
+                <img src="${m.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}" alt="${m.sender}" style="width: 38px; height: 38px; border-radius: var(--radius-full); object-fit: cover;" onerror="this.src='https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150';">
                 <div>
                   <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <span style="font-weight: 700; font-size: 0.875rem;">${m.sender}</span>

@@ -721,10 +721,14 @@ class StorageService {
     // Filter out legacy demo messages
     msgs = msgs.filter(m => m.id !== 'm1' && m.id !== 'm2' && m.id !== 'm3');
 
-    // Sync message avatars with current user roster profiles
+    const currentUser = this.getCurrentUser();
     const users = this.getUsers();
+
+    // Dynamically enforce true profile avatar for all chat messages
     msgs.forEach(m => {
-      if (m.sender) {
+      if (currentUser && currentUser.name && m.sender && (m.sender.trim().toLowerCase() === currentUser.name.trim().toLowerCase() || m.userId === currentUser.id)) {
+        m.avatar = currentUser.avatar || m.avatar;
+      } else if (m.sender) {
         const matchedUser = users.find(u => u.name && u.name.trim().toLowerCase() === m.sender.trim().toLowerCase());
         if (matchedUser && matchedUser.avatar) {
           m.avatar = matchedUser.avatar;
@@ -736,11 +740,12 @@ class StorageService {
   }
 
   sendMessage(text, channel = 'general') {
-    const msgs = this.getMessages();
     const currentUser = this.getCurrentUser();
+    const msgs = this.getMessages();
 
     const newMsg = {
       id: `m-${Date.now()}`,
+      userId: currentUser.id,
       sender: currentUser.name,
       avatar: currentUser.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
       text: text,
