@@ -210,11 +210,15 @@ class FirebaseService {
   // --- Real-time Cloud Sync for Submissions, Documents & Calendar ---
   async syncCollection(collectionName, dataArray) {
     try {
-      await fetch(`${this.baseUrl}/${collectionName}.json`, {
+      const payload = JSON.parse(JSON.stringify(dataArray));
+      const res = await fetch(`${this.baseUrl}/${collectionName}.json`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify(dataArray)
+        body: JSON.stringify(payload)
       });
+      if (res.ok) {
+        console.log(`✅ [Firebase Cloud DB] Synced ${collectionName} (${payload.length} items) across all devices`);
+      }
     } catch (e) {
       console.warn(`Firebase collection sync error (${collectionName}):`, e);
     }
@@ -223,7 +227,7 @@ class FirebaseService {
   startCloudAutoSync() {
     if (this.syncTimer) return;
     
-    // Fast Poll Cloud Database every 1.5s to sync additions, edits & deletions across all devices in real-time
+    // Poll Cloud Database every 2.5s to sync additions, edits & deletions across all devices in real-time
     this.syncTimer = setInterval(async () => {
       try {
         const [users, modules, docs, events, msgs, att, deletedUserIds] = await Promise.all([
@@ -302,22 +306,27 @@ class FirebaseService {
         }
 
         if (viewNeedsRefresh) {
-          const appContent = document.getElementById('app-content');
-          const adminContent = document.getElementById('admin-app-content');
+          const activeInput = document.activeElement && ['INPUT', 'TEXTAREA', 'SELECT'].includes(document.activeElement.tagName);
+          const hasOpenModal = document.querySelector('.modal-card, .admin-modal, #admin-modal-container:not(:empty)');
 
-          if (appContent && window.appController) {
-            const currentRoute = window.location.hash.replace('#', '') || 'dashboard';
-            window.appController.navigate(currentRoute);
-          }
-          if (adminContent && window.adminController) {
-            const currentRoute = window.adminController.currentView || 'overview';
-            window.adminController.navigate(currentRoute);
+          if (!activeInput && !hasOpenModal) {
+            const appContent = document.getElementById('app-content');
+            const adminContent = document.getElementById('admin-app-content');
+
+            if (appContent && window.appController) {
+              const currentRoute = window.location.hash.replace('#', '') || 'dashboard';
+              window.appController.navigate(currentRoute);
+            }
+            if (adminContent && window.adminController) {
+              const currentRoute = window.adminController.currentView || 'overview';
+              window.adminController.navigate(currentRoute);
+            }
           }
         }
       } catch (e) {
         // Silent background sync
       }
-    }, 1500);
+    }, 2500);
   }
 
   async syncModuleSubmission(modData) {
