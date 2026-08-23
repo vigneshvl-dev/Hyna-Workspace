@@ -748,19 +748,26 @@ class StorageService {
   }
 
   sendMessage(text, channel = 'general', image = null, audio = null) {
-    const currentUser = this.getCurrentUser();
+    let currentUser = this.getCurrentUser();
+    if (!currentUser || !currentUser.name) {
+      currentUser = {
+        id: 'user-001',
+        name: 'VIGNESH V L',
+        avatar: 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'
+      };
+    }
     const msgs = this.getMessages();
 
     const newMsg = {
       id: `m-${Date.now()}`,
-      userId: currentUser.id,
-      sender: currentUser.name,
+      userId: currentUser.id || 'user-001',
+      sender: currentUser.name || 'Employee',
       avatar: currentUser.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
       text: text || '',
       image: image || null,
       audio: audio || null,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      channel: channel
+      channel: channel || 'general'
     };
     msgs.push(newMsg);
 
@@ -768,6 +775,14 @@ class StorageService {
       localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(msgs));
     } catch (e) {
       console.error("Storage error saving chat message:", e);
+      if (e.name === 'QuotaExceededError' || e.code === 22) {
+        try {
+          const trimmedMsgs = msgs.slice(-30);
+          localStorage.setItem(STORAGE_KEYS.MESSAGES, JSON.stringify(trimmedMsgs));
+        } catch (err) {
+          console.error("Failed to prune messages:", err);
+        }
+      }
     }
 
     let notifText = text ? (text.length > 55 ? text.substring(0, 52) + '...' : text) : (image ? '📷 Sent an image attachment' : (audio ? '🎙️ Sent a voice note' : 'Sent a message'));
