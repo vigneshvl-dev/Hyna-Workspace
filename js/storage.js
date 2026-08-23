@@ -288,6 +288,15 @@ class StorageService {
   }
 
   init() {
+    const CURRENT_VERSION = '2.5';
+    const storedVersion = localStorage.getItem('hyna_storage_version');
+
+    if (storedVersion !== CURRENT_VERSION) {
+      // Auto-sync latest roster and clean defaults on new version
+      localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(DEFAULT_USERS));
+      localStorage.setItem('hyna_storage_version', CURRENT_VERSION);
+    }
+
     if (!localStorage.getItem(STORAGE_KEYS.USERS)) {
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(DEFAULT_USERS));
     }
