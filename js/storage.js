@@ -923,6 +923,83 @@ class StorageService {
     return users.filter(u => leadRoles.includes(u.role));
   }
 
+  // --- Add & Delete Module / Project ---
+  addModule(moduleData) {
+    const modules = this.getModules();
+    const nextNum = modules.length + 1;
+    const newMod = {
+      id: `mod-${String(nextNum).padStart(2, '0')}-${Date.now()}`,
+      number: moduleData.number || `Module ${String(nextNum).padStart(2, '0')}`,
+      title: moduleData.title || 'New Workspace Module',
+      description: moduleData.description || 'Module details and instructions.',
+      assignedDate: new Date().toISOString().split('T')[0],
+      deadline: moduleData.deadline || '2026-09-30',
+      progress: 0,
+      status: 'Assigned',
+      instructor: moduleData.instructor || 'Sarah Jenkins',
+      assignedTo: 'all',
+      unlocked: true,
+      content: moduleData.content || 'Module content materials.'
+    };
+    modules.push(newMod);
+    localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(modules));
+
+    this.createNotification({
+      title: `New Module Created: ${newMod.title}`,
+      message: `${newMod.number} - ${newMod.title} is now available in workspace.`,
+      category: 'Modules'
+    });
+    this.addAuditLog('Module Created', `Created module "${newMod.title}"`);
+    return { success: true, module: newMod };
+  }
+
+  deleteModule(moduleId) {
+    let modules = this.getModules();
+    const mod = modules.find(m => m.id === moduleId);
+    if (!mod) return { success: false, error: 'Module not found' };
+
+    modules = modules.filter(m => m.id !== moduleId);
+    localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(modules));
+    this.addAuditLog('Module Deleted', `Deleted module "${mod.title}"`);
+    return { success: true };
+  }
+
+  addProject(projectData) {
+    const projects = this.getProjects();
+    const nextNum = projects.length + 1;
+    const newProj = {
+      id: `proj-${String(nextNum).padStart(2, '0')}-${Date.now()}`,
+      name: projectData.name || 'New Workspace Project',
+      description: projectData.description || 'Project deliverables and objectives.',
+      lead: projectData.lead || 'Sarah Jenkins',
+      teamMembers: projectData.teamMembers && projectData.teamMembers.length > 0 ? projectData.teamMembers : ['Alex Morgan', 'Sarah Jenkins'],
+      progress: 0,
+      deadline: projectData.deadline || '2026-10-30',
+      status: projectData.status || 'Active'
+    };
+    projects.push(newProj);
+    localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+
+    this.createNotification({
+      title: `New Project Created: ${newProj.name}`,
+      message: `Project "${newProj.name}" created under Lead (${newProj.lead}).`,
+      category: 'Projects'
+    });
+    this.addAuditLog('Project Created', `Created project "${newProj.name}"`);
+    return { success: true, project: newProj };
+  }
+
+  deleteProject(projectId) {
+    let projects = this.getProjects();
+    const proj = projects.find(p => p.id === projectId);
+    if (!proj) return { success: false, error: 'Project not found' };
+
+    projects = projects.filter(p => p.id !== projectId);
+    localStorage.setItem(STORAGE_KEYS.PROJECTS, JSON.stringify(projects));
+    this.addAuditLog('Project Deleted', `Deleted project "${proj.name}"`);
+    return { success: true };
+  }
+
   // --- Documents ---
   getDocuments() {
     return JSON.parse(localStorage.getItem(STORAGE_KEYS.DOCUMENTS)) || [];

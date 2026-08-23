@@ -1009,6 +1009,407 @@ class AdminController {
     });
   }
 
+  // --- MODULE DISTRIBUTION TAB ---
+  renderModuleDistributionTab(container) {
+    const modules = this.storage.getModules();
+    const users = this.storage.getUsers();
+    const distributions = this.storage.getModuleDistributions();
+
+    container.innerHTML = `
+      <div class="admin-header-banner">
+        <div class="admin-banner-top">
+          <div class="admin-banner-title">
+            <h2><i class="fa-solid fa-share-nodes text-primary"></i> Module Distribution Panel</h2>
+            <p style="color:#94a3b8; font-size:0.9rem; margin-top:0.25rem;">Distribute workspace modules to selected employees with target deadlines</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.5rem; background: var(--bg-card);">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-paper-plane text-primary"></i> Distribute Module to Selected Employees</h3>
+        </div>
+
+        <form id="distribute-module-form">
+          <div class="grid grid-2" style="gap:1.25rem; margin-bottom:1.25rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;">Select Module to Distribute</label>
+              <select class="form-control" id="dist-module-select" required>
+                <option value="">-- Choose Module --</option>
+                ${modules.map(m => `<option value="${m.id}">${m.number || 'Mod'} - ${m.title}</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;">Target Completion Deadline</label>
+              <input type="date" class="form-control" id="dist-module-deadline" value="2026-09-15" required>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:1.25rem;">
+            <label class="form-label" style="font-weight:700; margin-bottom:0.5rem; display:block;">
+              Select Target Employees (<span id="selected-emp-count">0</span> selected)
+            </label>
+            <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-select-all-emps">Select All</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-deselect-all-emps">Deselect All</button>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:0.6rem; max-height:220px; overflow-y:auto; padding:0.75rem; background:rgba(0,0,0,0.2); border:1px solid var(--border-color); border-radius:var(--radius-md);">
+              ${users.map(u => `
+                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; cursor:pointer; padding:0.3rem 0.5rem; background:rgba(255,255,255,0.03); border-radius:4px;">
+                  <input type="checkbox" class="dist-emp-checkbox" value="${u.id}">
+                  <img src="${u.avatar}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">
+                  <span style="font-weight:600;">${u.name}</span>
+                  <span style="font-size:0.7rem; color:#94a3b8; margin-left:auto;">${u.role}</span>
+                </label>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:1.5rem;">
+            <label class="form-label" style="font-weight:700;">Distribution Instructions / Notes</label>
+            <input type="text" class="form-control" id="dist-module-instructions" placeholder="e.g. Mandatory onboarding exercise for sprint Q3">
+          </div>
+
+          <div style="display:flex; justify-content:flex-end;">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-paper-plane"></i> Distribute Module to Selected Employees
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-list-check text-primary"></i> Module Distribution Records (${distributions.length})</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Module Title</th>
+                <th>Distributed To (Selected Employees)</th>
+                <th>Distributed By</th>
+                <th>Date</th>
+                <th>Deadline</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${distributions.length === 0 ? `
+                <tr>
+                  <td colspan="6" style="text-align:center; color:#94a3b8; padding:2rem;">
+                    No module distributions recorded yet. Distribute a module above!
+                  </td>
+                </tr>
+              ` : distributions.map(d => `
+                <tr>
+                  <td style="font-weight:700; color:#38bdf8;">
+                    <i class="fa-solid fa-book-open" style="margin-right:0.4rem;"></i>
+                    ${d.moduleNumber} - ${d.moduleTitle}
+                  </td>
+                  <td style="font-size:0.85rem; max-width:280px; font-weight:600;">${d.targetUserNames}</td>
+                  <td>${d.distributedBy}</td>
+                  <td>${d.distributedDate}</td>
+                  <td><span class="badge badge-neutral">${d.deadline}</span></td>
+                  <td><span class="badge badge-success">${d.status}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    const checkboxes = container.querySelectorAll('.dist-emp-checkbox');
+    const updateCount = () => {
+      const selected = container.querySelectorAll('.dist-emp-checkbox:checked').length;
+      const countEl = container.querySelector('#selected-emp-count');
+      if (countEl) countEl.innerText = selected;
+    };
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
+
+    container.querySelector('#btn-select-all-emps')?.addEventListener('click', () => {
+      checkboxes.forEach(cb => cb.checked = true);
+      updateCount();
+    });
+
+    container.querySelector('#btn-deselect-all-emps')?.addEventListener('click', () => {
+      checkboxes.forEach(cb => cb.checked = false);
+      updateCount();
+    });
+
+    container.querySelector('#distribute-module-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const moduleId = container.querySelector('#dist-module-select').value;
+      const deadline = container.querySelector('#dist-module-deadline').value;
+      const instructions = container.querySelector('#dist-module-instructions').value;
+      const selectedIds = Array.from(container.querySelectorAll('.dist-emp-checkbox:checked')).map(cb => cb.value);
+
+      const result = this.storage.distributeModule(moduleId, selectedIds, deadline, instructions);
+      if (result.success) {
+        this.showToast(`Module distributed to ${result.count} selected employee(s)!`, 'success');
+        this.renderModuleDistributionTab(container);
+      } else {
+        this.showToast(result.error || 'Distribution failed', 'error');
+      }
+    });
+  }
+
+  // --- PROJECT DISTRIBUTION TAB ---
+  renderProjectDistributionTab(container) {
+    const projects = this.storage.getProjects();
+    const leads = this.storage.getProjectLeads();
+    const users = this.storage.getUsers();
+
+    container.innerHTML = `
+      <div class="admin-header-banner">
+        <div class="admin-banner-top">
+          <div class="admin-banner-title">
+            <h2><i class="fa-solid fa-diagram-project text-primary"></i> Project Distribution Panel</h2>
+            <p style="color:#94a3b8; font-size:0.9rem; margin-top:0.25rem;">Allocate workspace projects to Project Leads and selected team members</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.5rem; background: var(--bg-card);">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-users-viewfinder text-primary"></i> Allocate Project to Team</h3>
+        </div>
+
+        <form id="distribute-project-form">
+          <div class="grid grid-2" style="gap:1.25rem; margin-bottom:1.25rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;">Select Project</label>
+              <select class="form-control" id="dist-proj-select" required>
+                <option value="">-- Choose Project --</option>
+                ${projects.map(p => `<option value="${p.id}">${p.name} (${p.status})</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;">Assigned Project Lead</label>
+              <select class="form-control" id="dist-proj-lead-select" required>
+                <option value="">-- Select Project Lead --</option>
+                ${leads.map(l => `<option value="${l.id}">${l.name} (${l.role})</option>`).join('')}
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:1.25rem;">
+            <label class="form-label" style="font-weight:700; margin-bottom:0.5rem; display:block;">
+              Select Assigned Team Members (<span id="selected-proj-emp-count">0</span> selected)
+            </label>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:0.6rem; max-height:200px; overflow-y:auto; padding:0.75rem; background:rgba(0,0,0,0.2); border:1px solid var(--border-color); border-radius:var(--radius-md);">
+              ${users.map(u => `
+                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; cursor:pointer; padding:0.3rem 0.5rem; background:rgba(255,255,255,0.03); border-radius:4px;">
+                  <input type="checkbox" class="dist-proj-emp-checkbox" value="${u.id}">
+                  <img src="${u.avatar}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">
+                  <span style="font-weight:600;">${u.name}</span>
+                </label>
+              `).join('')}
+            </div>
+          </div>
+
+          <div class="grid grid-2" style="gap:1.25rem; margin-bottom:1.5rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;">Target Completion Deadline</label>
+              <input type="date" class="form-control" id="dist-proj-deadline" value="2026-10-30">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;">Priority Level</label>
+              <select class="form-control" id="dist-proj-priority">
+                <option value="High">High Priority</option>
+                <option value="Urgent">Urgent Priority</option>
+                <option value="Medium">Medium Priority</option>
+              </select>
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end;">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-diagram-project"></i> Distribute Project to Selected Team
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-folder-tree text-primary"></i> Active Project Roster Allocations</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Project Name</th>
+                <th>Assigned Project Lead</th>
+                <th>Assigned Team Members</th>
+                <th>Progress</th>
+                <th>Deadline</th>
+                <th>Status</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${projects.map(p => `
+                <tr>
+                  <td style="font-weight:700; color:#fff;">${p.name}</td>
+                  <td style="font-weight:700; color:#38bdf8;">
+                    <i class="fa-solid fa-user-tie" style="margin-right:0.35rem;"></i>
+                    ${p.lead || 'Project Lead'}
+                  </td>
+                  <td style="font-size:0.85rem;">
+                    ${(p.teamMembers || []).map(m => `<span class="badge badge-neutral" style="margin:2px;">${m}</span>`).join('')}
+                  </td>
+                  <td>
+                    <div style="display:flex; align-items:center; gap:0.5rem;">
+                      <div style="flex:1; height:6px; background:rgba(255,255,255,0.1); border-radius:3px; overflow:hidden;">
+                        <div style="width:${p.progress || 0}%; height:100%; background:var(--primary);"></div>
+                      </div>
+                      <span style="font-size:0.75rem; font-weight:700;">${p.progress || 0}%</span>
+                    </div>
+                  </td>
+                  <td>${p.deadline || '2026-09-30'}</td>
+                  <td><span class="badge badge-success">${p.status}</span></td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    const checkboxes = container.querySelectorAll('.dist-proj-emp-checkbox');
+    const updateCount = () => {
+      const selected = container.querySelectorAll('.dist-proj-emp-checkbox:checked').length;
+      const countEl = container.querySelector('#selected-proj-emp-count');
+      if (countEl) countEl.innerText = selected;
+    };
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
+
+    container.querySelector('#distribute-project-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const projId = container.querySelector('#dist-proj-select').value;
+      const leadId = container.querySelector('#dist-proj-lead-select').value;
+      const deadline = container.querySelector('#dist-proj-deadline').value;
+      const selectedMemberIds = Array.from(container.querySelectorAll('.dist-proj-emp-checkbox:checked')).map(cb => cb.value);
+
+      const result = this.storage.distributeProject(projId, leadId, selectedMemberIds, deadline);
+      if (result.success) {
+        this.showToast(`Project "${result.project.name}" allocated to team!`, 'success');
+        this.renderProjectDistributionTab(container);
+      } else {
+        this.showToast(result.error || 'Project allocation failed', 'error');
+      }
+    });
+  }
+
+  // --- PROJECT LEADS TAB ---
+  renderProjectLeadsTab(container) {
+    const leads = this.storage.getProjectLeads();
+    const users = this.storage.getUsers();
+    const projects = this.storage.getProjects();
+
+    container.innerHTML = `
+      <div class="admin-header-banner">
+        <div class="admin-banner-top">
+          <div class="admin-banner-title">
+            <h2><i class="fa-solid fa-user-tie text-primary"></i> Project Leads & Leadership Roster</h2>
+            <p style="color:#94a3b8; font-size:0.9rem; margin-top:0.25rem;">Inspect designated Project Management Leads and assign leadership roles</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
+          <h3 class="card-title"><i class="fa-solid fa-shield-halved text-primary"></i> Designated Project Management Leads (${leads.length})</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Lead Officer</th>
+                <th>Employee ID</th>
+                <th>Assigned Role</th>
+                <th>Department</th>
+                <th>Corporate Email</th>
+                <th>Active Projects</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${leads.map(l => {
+                const assignedProjs = projects.filter(p => p.lead === l.name || (p.teamMembers || []).includes(l.name));
+                return `
+                  <tr>
+                    <td>
+                      <div class="user-cell">
+                        <img src="${l.avatar}" alt="${l.name}" class="user-avatar-sm">
+                        <div class="user-details">
+                          <span style="font-weight:700; color:#fff;">${l.name}</span>
+                        </div>
+                      </div>
+                    </td>
+                    <td style="font-family:monospace; font-weight:700; color:#38bdf8;">${l.empId || 'EMP'}</td>
+                    <td><span class="role-badge ${this.getRoleBadgeClass(l.role)}">${l.role}</span></td>
+                    <td>${l.department}</td>
+                    <td style="font-size:0.8rem; color:#94a3b8;">${l.email}</td>
+                    <td>
+                      <span class="badge badge-primary">${assignedProjs.length} Projects</span>
+                    </td>
+                  </tr>
+                `;
+              }).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-user-plus text-primary"></i> Promote Employee to Project Management Lead</h3>
+        </div>
+        <form id="promote-lead-form">
+          <div class="grid grid-2" style="gap:1.25rem; margin-bottom:1.25rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;">Select Employee</label>
+              <select class="form-control" id="promote-emp-select" required>
+                <option value="">-- Choose Employee --</option>
+                ${users.map(u => `<option value="${u.id}">${u.name} - ${u.department} (${u.role})</option>`).join('')}
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;">Assign Leadership Clearance</label>
+              <select class="form-control" id="promote-role-select" required>
+                <option value="Project Management Lead">Project Management Lead</option>
+                <option value="Manager">Manager</option>
+                <option value="VP of Product">VP of Product</option>
+                <option value="Director">Director</option>
+              </select>
+            </div>
+          </div>
+          <div style="display:flex; justify-content:flex-end;">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-award"></i> Assign Project Lead Clearance
+            </button>
+          </div>
+        </form>
+      </div>
+    `;
+
+    container.querySelector('#promote-lead-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const empId = container.querySelector('#promote-emp-select').value;
+      const newRole = container.querySelector('#promote-role-select').value;
+
+      const user = users.find(u => u.id === empId);
+      if (user) {
+        this.storage.updateUserRole(empId, newRole);
+        this.showToast(`Assigned ${user.name} to ${newRole}!`, 'success');
+        this.renderProjectLeadsTab(container);
+      }
+    });
+  }
+
   getRoleBadgeClass(role) {
     switch (role) {
       case 'CEO': return 'role-ceo';
