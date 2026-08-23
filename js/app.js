@@ -112,17 +112,23 @@ class AppController {
 
   bindSidebar() {
     const sidebar = document.querySelector('.sidebar');
+    const mainWrapper = document.querySelector('.main-wrapper');
     const toggleBtns = document.querySelectorAll('#mobile-menu-btn, #mobile-hamburger, .mobile-menu-toggle, .sidebar-toggle-btn');
     
     toggleBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        sidebar?.classList.toggle('mobile-open');
+        if (window.innerWidth <= 768) {
+          sidebar?.classList.toggle('mobile-open');
+        } else {
+          sidebar?.classList.toggle('collapsed');
+          mainWrapper?.classList.toggle('collapsed-sidebar');
+        }
       });
     });
 
     document.addEventListener('click', (e) => {
-      if (sidebar && sidebar.classList.contains('mobile-open') && !sidebar.contains(e.target) && !e.target.closest('#mobile-menu-btn, #mobile-hamburger, .mobile-menu-toggle, .sidebar-toggle-btn')) {
+      if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('mobile-open') && !sidebar.contains(e.target) && !e.target.closest('#mobile-menu-btn, #mobile-hamburger, .mobile-menu-toggle, .sidebar-toggle-btn')) {
         sidebar.classList.remove('mobile-open');
       }
     });

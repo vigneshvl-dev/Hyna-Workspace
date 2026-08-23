@@ -100,17 +100,23 @@ class AdminController {
 
   bindAdminSidebar() {
     const sidebar = document.querySelector('.admin-sidebar');
+    const mainWrapper = document.querySelector('.admin-main-wrapper');
     const toggleBtns = document.querySelectorAll('#admin-mobile-toggle, .admin-sidebar-toggle, .mobile-menu-toggle, #mobile-hamburger, #mobile-menu-btn');
 
     toggleBtns.forEach(btn => {
       btn.addEventListener('click', (e) => {
         e.stopPropagation();
-        sidebar?.classList.toggle('mobile-open');
+        if (window.innerWidth <= 768) {
+          sidebar?.classList.toggle('mobile-open');
+        } else {
+          sidebar?.classList.toggle('collapsed');
+          mainWrapper?.classList.toggle('collapsed-sidebar');
+        }
       });
     });
 
     document.addEventListener('click', (e) => {
-      if (sidebar && sidebar.classList.contains('mobile-open') && !sidebar.contains(e.target) && !e.target.closest('#admin-mobile-toggle, .admin-sidebar-toggle, .mobile-menu-toggle, #mobile-hamburger, #mobile-menu-btn')) {
+      if (window.innerWidth <= 768 && sidebar && sidebar.classList.contains('mobile-open') && !sidebar.contains(e.target) && !e.target.closest('#admin-mobile-toggle, .admin-sidebar-toggle, .mobile-menu-toggle, #mobile-hamburger, #mobile-menu-btn')) {
         sidebar.classList.remove('mobile-open');
       }
     });

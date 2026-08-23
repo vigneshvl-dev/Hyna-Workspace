@@ -1023,3 +1023,42 @@ textarea.form-control {
     width: 100% !important;
   }
 }
+
+/* Desktop Collapsed Sidebar States */
+@media (min-width: 769px) {
+  .sidebar.collapsed {
+    width: var(--sidebar-collapsed-width, 80px) !important;
+  }
+
+  .sidebar.collapsed .brand-name,
+  .sidebar.collapsed .brand-badge,
+  .sidebar.collapsed .nav-section-title,
+  .sidebar.collapsed .nav-item span:not(.nav-icon),
+  .sidebar.collapsed .nav-badge,
+  .sidebar.collapsed .user-info {
+    display: none !important;
+  }
+
+  .sidebar.collapsed .sidebar-header {
+    justify-content: center !important;
+    padding: 0 0.5rem !important;
+  }
+
+  .sidebar.collapsed .brand-logo {
+    justify-content: center !important;
+  }
+
+  .sidebar.collapsed .nav-item a {
+    justify-content: center !important;
+    padding: 0.75rem 0.5rem !important;
+  }
+
+  .sidebar.collapsed .sidebar-user {
+    justify-content: center !important;
+    padding: 1rem 0.5rem !important;
+  }
+
+  .main-wrapper.collapsed-sidebar {
+    margin-left: var(--sidebar-collapsed-width, 80px) !important;
+  }
+}

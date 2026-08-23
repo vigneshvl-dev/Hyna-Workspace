@@ -45,6 +45,83 @@ const DEFAULT_USERS = [
     email: 'admin@hyna.studio',
     avatar: 'https://images.unsplash.com/photo-1560250097-0b93528c311a?w=150&auto=format&fit=crop&q=80',
     status: 'Active'
+  },
+  {
+    id: 'user-002',
+    empId: 'EMP-002',
+    password: 'user123',
+    name: 'Sarah Jenkins',
+    role: 'CTO',
+    department: 'Engineering',
+    email: 'sarah.jenkins@hyna.studio',
+    avatar: 'https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80',
+    status: 'Active'
+  },
+  {
+    id: 'user-003',
+    empId: 'EMP-003',
+    password: 'user123',
+    name: 'David Chen',
+    role: 'VP of Engineering',
+    department: 'Development',
+    email: 'david.chen@hyna.studio',
+    avatar: 'https://images.unsplash.com/photo-1534528741775-53994a69daeb?w=150&auto=format&fit=crop&q=80',
+    status: 'Active'
+  },
+  {
+    id: 'user-004',
+    empId: 'EMP-004',
+    password: 'user123',
+    name: 'Elena Rostova',
+    role: 'CPO',
+    department: 'Product & Design',
+    email: 'elena.rostova@hyna.studio',
+    avatar: 'https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?w=150&auto=format&fit=crop&q=80',
+    status: 'Active'
+  },
+  {
+    id: 'user-005',
+    empId: 'EMP-005',
+    password: 'user123',
+    name: 'Marcus Vance',
+    role: 'Lead Frontend Architect',
+    department: 'Engineering',
+    email: 'marcus.vance@hyna.studio',
+    avatar: 'https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80',
+    status: 'Active'
+  },
+  {
+    id: 'user-006',
+    empId: 'EMP-006',
+    password: 'user123',
+    name: 'Alex Morgan',
+    role: 'Senior Full-Stack Engineer',
+    department: 'Development',
+    email: 'alex.morgan@hyna.studio',
+    avatar: 'https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80',
+    status: 'Active'
+  },
+  {
+    id: 'user-007',
+    empId: 'EMP-007',
+    password: 'user123',
+    name: 'Chloe Bennett',
+    role: 'Director of Operations',
+    department: 'Operations',
+    email: 'chloe.bennett@hyna.studio',
+    avatar: 'https://images.unsplash.com/photo-1544005313-94ddf0286df2?w=150&auto=format&fit=crop&q=80',
+    status: 'Active'
+  },
+  {
+    id: 'user-008',
+    empId: 'EMP-008',
+    password: 'user123',
+    name: 'Daniel Kim',
+    role: 'Security & DevOps Lead',
+    department: 'IT & Security',
+    email: 'daniel.kim@hyna.studio',
+    avatar: 'https://images.unsplash.com/photo-1519085360753-af0119f7cbe7?w=150&auto=format&fit=crop&q=80',
+    status: 'Active'
   }
 ];
 
@@ -248,6 +325,12 @@ class StorageService {
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     } else {
       let updated = false;
+      DEFAULT_USERS.forEach(defUser => {
+        if (!users.some(u => u.id === defUser.id || u.empId === defUser.empId)) {
+          users.push(defUser);
+          updated = true;
+        }
+      });
       users = users.map((u, idx) => {
         const defaultU = DEFAULT_USERS.find(d => d.id === u.id) || DEFAULT_USERS[idx] || {};
         if (u.empId === 'EMP-001' || u.id === 'user-001') {

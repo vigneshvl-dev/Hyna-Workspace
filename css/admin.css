@@ -507,3 +507,37 @@ body.admin-portal-body {
     padding: 1.25rem !important;
   }
 }
+
+/* Desktop Collapsed Admin Sidebar States */
+@media (min-width: 769px) {
+  .admin-sidebar.collapsed {
+    width: 80px !important;
+  }
+
+  .admin-sidebar.collapsed .brand-name,
+  .admin-sidebar.collapsed .admin-badge-tag,
+  .admin-sidebar.collapsed .nav-section-title,
+  .admin-sidebar.collapsed .nav-item span:not(.nav-icon),
+  .admin-sidebar.collapsed .nav-badge,
+  .admin-sidebar.collapsed .user-info {
+    display: none !important;
+  }
+
+  .admin-sidebar.collapsed .admin-sidebar-header {
+    justify-content: center !important;
+    padding: 0 0.5rem !important;
+  }
+
+  .admin-sidebar.collapsed .brand-logo {
+    justify-content: center !important;
+  }
+
+  .admin-sidebar.collapsed .nav-item a {
+    justify-content: center !important;
+    padding: 0.75rem 0.5rem !important;
+  }
+
+  .admin-main-wrapper.collapsed-sidebar {
+    margin-left: 80px !important;
+  }
+}
