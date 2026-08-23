@@ -68,6 +68,9 @@ class AdminController {
       case 'modules':
         this.renderModulesTab(container);
         break;
+      case 'task-distribution':
+        this.renderTaskDistributionTab(container);
+        break;
       case 'module-distribution':
         this.renderModuleDistributionTab(container);
         break;
@@ -1724,6 +1727,235 @@ class AdminController {
         closeModal();
         this.showToast(`Created project "${result.project.name}"!`, 'success');
         this.navigate(this.currentView);
+      }
+    });
+  }
+
+  // --- TASK DISTRIBUTION TAB ---
+  renderTaskDistributionTab(container) {
+    const tasks = this.storage.getTasks();
+    const users = this.storage.getUsers();
+    const projects = this.storage.getProjects();
+    const submittedTasks = tasks.filter(t => t.status === 'Submitted');
+
+    container.innerHTML = `
+      <div class="admin-header-banner">
+        <div class="admin-banner-top">
+          <div class="admin-banner-title">
+            <h2><i class="fa-solid fa-list-check text-primary"></i> Task Distribution & Verification Control</h2>
+            <p style="color:#94a3b8; font-size:0.9rem; margin-top:0.25rem;">Assign tasks to selected team members, set priorities, and verify completed work with screenshots</p>
+          </div>
+        </div>
+      </div>
+
+      <div class="card" style="margin-bottom: 1.5rem; background: var(--bg-card);">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-paper-plane text-primary"></i> Assign Task to Selected Employees</h3>
+        </div>
+
+        <form id="distribute-task-form">
+          <div class="grid grid-2" style="gap:1.25rem; margin-bottom:1.25rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;">Task Title</label>
+              <input type="text" class="form-control" id="dist-task-title" required placeholder="e.g. Implement Responsive Navigation & Accessibility">
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;">Target Project</label>
+              <select class="form-control" id="dist-task-project" required>
+                ${projects.map(p => `<option value="${p.name}">${p.name}</option>`).join('')}
+                <option value="Hyna Workspace General Tasks">Hyna Workspace General Tasks</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="grid grid-2" style="gap:1.25rem; margin-bottom:1.25rem;">
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;">Priority Level</label>
+              <select class="form-control" id="dist-task-priority">
+                <option value="High" selected>High Priority</option>
+                <option value="Urgent">Urgent</option>
+                <option value="Medium">Medium Priority</option>
+                <option value="Low">Low Priority</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label class="form-label" style="font-weight:700;">Target Deadline</label>
+              <input type="date" class="form-control" id="dist-task-deadline" value="2026-09-15" required>
+            </div>
+          </div>
+
+          <div class="form-group" style="margin-bottom:1.25rem;">
+            <label class="form-label" style="font-weight:700; margin-bottom:0.5rem; display:block;">
+              Select Target Employees (<span id="selected-task-emp-count">0</span> selected)
+            </label>
+            <div style="display:flex; gap:0.5rem; margin-bottom:0.5rem;">
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-select-all-task-emps">Select All</button>
+              <button type="button" class="btn btn-secondary btn-sm" id="btn-deselect-all-task-emps">Deselect All</button>
+            </div>
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(220px, 1fr)); gap:0.6rem; max-height:220px; overflow-y:auto; padding:0.75rem; background:rgba(0,0,0,0.2); border:1px solid var(--border-color); border-radius:var(--radius-md);">
+              ${users.map(u => `
+                <label style="display:flex; align-items:center; gap:0.5rem; font-size:0.85rem; cursor:pointer; padding:0.3rem 0.5rem; background:rgba(255,255,255,0.03); border-radius:4px;">
+                  <input type="checkbox" class="dist-task-emp-checkbox" value="${u.id}">
+                  <img src="${u.avatar}" style="width:24px; height:24px; border-radius:50%; object-fit:cover;">
+                  <span style="font-weight:600;">${u.name}</span>
+                  <span style="font-size:0.7rem; color:#94a3b8; margin-left:auto;">${u.role}</span>
+                </label>
+              `).join('')}
+            </div>
+          </div>
+
+          <div style="display:flex; justify-content:flex-end;">
+            <button type="submit" class="btn btn-primary">
+              <i class="fa-solid fa-paper-plane"></i> Assign Task to Selected Employees
+            </button>
+          </div>
+        </form>
+      </div>
+
+      <!-- Pending Task Work Submissions Verification Card -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-file-signature text-warning"></i> Pending Task Work Submissions & Verification Screenshots (${submittedTasks.length})</h3>
+        </div>
+        <div style="display: flex; flex-direction: column; gap: 1rem; margin-top: 1rem;">
+          ${submittedTasks.length === 0 ? `
+            <div style="text-align: center; color: #94a3b8; padding: 1.5rem;">
+              No pending task work submissions for review.
+            </div>
+          ` : submittedTasks.map(t => `
+            <div style="padding: 1.25rem; background: rgba(15,23,42,0.8); border-radius: 10px; border: 1px solid var(--border-color); display: flex; flex-direction: column; gap: 0.75rem;">
+              <div style="display: flex; justify-content: space-between; align-items: center;">
+                <div>
+                  <span class="badge badge-warning" style="margin-right: 0.5rem;">${t.priority}</span>
+                  <span style="font-weight: 700; color: #fff; font-size: 1rem;">${t.title}</span>
+                  <span style="font-size: 0.8rem; color: #94a3b8; margin-left: 0.5rem;">(${t.project})</span>
+                </div>
+                <button class="btn btn-success btn-sm btn-approve-task-dist" data-task-id="${t.id}">
+                  <i class="fa-solid fa-check-circle"></i> Verify Image & Approve Task
+                </button>
+              </div>
+              <div style="font-size: 0.85rem; color: #94a3b8;">
+                <strong>Assigned To:</strong> ${t.assignedTo} | <strong>Employee Completion Notes:</strong> ${t.submissionText || 'No notes provided'}
+              </div>
+              ${t.submissionImage ? `
+                <div>
+                  <div style="font-size: 0.8rem; font-weight: 700; color: #38bdf8; margin-bottom: 0.35rem;">Verification Screenshot Image:</div>
+                  <img src="${t.submissionImage}" alt="Verification Screenshot" style="max-width: 320px; max-height: 200px; border-radius: 8px; border: 1px solid var(--border-color); cursor: pointer;" onclick="window.open(this.src)">
+                </div>
+              ` : ''}
+            </div>
+          `).join('')}
+        </div>
+      </div>
+
+      <!-- Active Workspace Tasks Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-list text-primary"></i> Active Task Allocations Directory (${tasks.length})</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Task Title</th>
+                <th>Project</th>
+                <th>Assigned To</th>
+                <th>Priority</th>
+                <th>Deadline</th>
+                <th>Status</th>
+                <th>Action</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${tasks.length === 0 ? `
+                <tr>
+                  <td colspan="7" style="text-align:center; color:#94a3b8; padding:2rem;">
+                    No tasks assigned yet. Create & assign a task above!
+                  </td>
+                </tr>
+              ` : tasks.map(t => `
+                <tr>
+                  <td style="font-weight:700; color:#fff;">${t.title}</td>
+                  <td style="font-size:0.85rem;">${t.project}</td>
+                  <td style="font-size:0.85rem; font-weight:600;">${t.assignedTo}</td>
+                  <td><span class="badge ${t.priority === 'Urgent' ? 'badge-danger' : t.priority === 'High' ? 'badge-warning' : 'badge-primary'}">${t.priority}</span></td>
+                  <td style="font-size:0.85rem;">${t.deadline}</td>
+                  <td><span class="badge ${t.status === 'Completed' ? 'badge-success' : t.status === 'Submitted' ? 'badge-warning' : 'badge-neutral'}">${t.status}</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-danger btn-delete-task-dist" data-task-id="${t.id}" title="Delete Task">
+                      <i class="fa-solid fa-trash"></i> Delete
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    const checkboxes = container.querySelectorAll('.dist-task-emp-checkbox');
+    const updateCount = () => {
+      const selected = container.querySelectorAll('.dist-task-emp-checkbox:checked').length;
+      const countEl = container.querySelector('#selected-task-emp-count');
+      if (countEl) countEl.innerText = selected;
+    };
+
+    checkboxes.forEach(cb => cb.addEventListener('change', updateCount));
+
+    container.querySelector('#btn-select-all-task-emps')?.addEventListener('click', () => {
+      checkboxes.forEach(cb => cb.checked = true);
+      updateCount();
+    });
+
+    container.querySelector('#btn-deselect-all-task-emps')?.addEventListener('click', () => {
+      checkboxes.forEach(cb => cb.checked = false);
+      updateCount();
+    });
+
+    container.querySelectorAll('.btn-approve-task-dist').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const taskId = e.currentTarget.getAttribute('data-task-id');
+        this.storage.approveTask(taskId);
+        this.showToast('Task verified and approved! Marked as Completed.', 'success');
+        this.renderTaskDistributionTab(container);
+      });
+    });
+
+    container.querySelectorAll('.btn-delete-task-dist').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const taskId = e.currentTarget.getAttribute('data-task-id');
+        if (confirm("Are you sure you want to delete this task?")) {
+          const res = this.storage.deleteTask(taskId);
+          if (res.success) {
+            this.showToast('Task deleted successfully!', 'success');
+            this.renderTaskDistributionTab(container);
+          }
+        }
+      });
+    });
+
+    container.querySelector('#distribute-task-form')?.addEventListener('submit', (e) => {
+      e.preventDefault();
+      const title = container.querySelector('#dist-task-title').value.trim();
+      const project = container.querySelector('#dist-task-project').value;
+      const priority = container.querySelector('#dist-task-priority').value;
+      const deadline = container.querySelector('#dist-task-deadline').value;
+      const selectedIds = Array.from(container.querySelectorAll('.dist-task-emp-checkbox:checked')).map(cb => cb.value);
+
+      const result = this.storage.assignTask({
+        title,
+        project,
+        priority,
+        deadline,
+        assignedToIds: selectedIds
+      });
+
+      if (result.success) {
+        this.showToast(`Task assigned to ${result.count} selected employee(s)!`, 'success');
+        this.renderTaskDistributionTab(container);
+      } else {
+        this.showToast('Failed to assign task', 'error');
       }
     });
   }
