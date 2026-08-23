@@ -85,7 +85,14 @@ class AttendanceController {
               </tr>
             </thead>
             <tbody>
-              ${logs.map(log => `
+              ${logs.length === 0 ? `
+                <tr>
+                  <td colspan="5" style="text-align:center; color:#94a3b8; padding:2rem; font-size:0.9rem;">
+                    <i class="fa-solid fa-calendar-check" style="font-size:1.5rem; color:var(--primary); margin-bottom:0.5rem; display:block;"></i>
+                    No attendance history logged yet. Daily tracking starts tomorrow upon check in!
+                  </td>
+                </tr>
+              ` : logs.map(log => `
                 <tr>
                   <td style="font-weight: 700;">${log.date}</td>
                   <td>${log.checkIn}</td>
