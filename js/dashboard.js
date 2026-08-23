@@ -23,6 +23,8 @@ class DashboardController {
     const todayLog = attendance.find(l => l.date === new Date().toISOString().split('T')[0]);
     const isCheckedIn = todayLog && (todayLog.status === 'Checked In' || todayLog.status === 'Present');
 
+    const inProgressModulesCount = modules.filter(m => m.status === 'In Progress').length;
+
     container.innerHTML = `
       <!-- Welcome Header -->
       <div class="page-header">
@@ -88,8 +90,8 @@ class DashboardController {
         <div class="kpi-card">
           <div class="kpi-icon-box kpi-icon-teal"><i class="fa-solid fa-spinner"></i></div>
           <div>
-            <div class="kpi-value">1</div>
-            <div class="kpi-label">Module In Progress</div>
+            <div class="kpi-value">${inProgressModulesCount}</div>
+            <div class="kpi-label">Modules In Progress</div>
           </div>
         </div>
 
