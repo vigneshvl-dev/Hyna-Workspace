@@ -451,9 +451,6 @@ class StorageService {
       user.role = newRole;
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
       this.addAuditLog('Role Update', `${user.name}: ${oldRole} → ${newRole}`);
-      if (window.firebaseService) {
-        window.firebaseService.updateUserRole(userId, newRole);
-      }
     }
   }
 
@@ -471,9 +468,6 @@ class StorageService {
         }
       }
       this.addAuditLog('Employee Profile Updated', `${users[userIndex].name} (${users[userIndex].empId || userId})`);
-      if (window.firebaseService) {
-        window.firebaseService.updateUser(userId, updatedData);
-      }
     }
   }
 
@@ -492,11 +486,6 @@ class StorageService {
     if (targetUser) {
       this.addAuditLog('Employee Deleted', `${targetUser.name} (${targetUser.empId || userId}) removed from roster`);
     }
-    if (window.firebaseService) {
-      window.firebaseService.deleteUser(userId);
-      window.firebaseService.syncCollection('users', users);
-      window.firebaseService.syncCollection('deleted_user_ids', deletedIds);
-    }
   }
 
   updateUserPassword(userId, newPassword) {
@@ -506,9 +495,6 @@ class StorageService {
       user.password = newPassword;
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
       this.addAuditLog('Password Reset', `Password updated for ${user.name} (${user.empId || user.id})`);
-      if (window.firebaseService) {
-        window.firebaseService.updateUserPassword(userId, newPassword);
-      }
     }
   }
 
@@ -519,9 +505,6 @@ class StorageService {
       user.email = newEmail;
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
       this.addAuditLog('Gmail / Email Update', `Email updated for ${user.name} to ${newEmail}`);
-      if (window.firebaseService) {
-        window.firebaseService.updateUserEmail(userId, newEmail);
-      }
     }
   }
 
@@ -533,9 +516,6 @@ class StorageService {
       user.name = newName;
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
       this.addAuditLog('Name Updated', `Name updated from ${oldName} to ${newName}`);
-      if (window.firebaseService) {
-        window.firebaseService.updateUserName(userId, newName);
-      }
     }
   }
 
@@ -547,9 +527,6 @@ class StorageService {
       user.status = user.status === 'Active' ? 'Suspended' : 'Active';
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
       this.addAuditLog('User Status Toggle', `${user.name} set to ${user.status}`);
-      if (window.firebaseService) {
-        window.firebaseService.toggleUserStatus(userId, oldStatus);
-      }
     }
   }
 
@@ -566,9 +543,6 @@ class StorageService {
     users.push(newUser);
     localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     this.addAuditLog('New User Created', `${newUser.name} (${newUser.role}) added to ${newUser.department}`);
-    if (window.firebaseService) {
-      window.firebaseService.addUser(newUser);
-    }
     return newUser;
   }
 
