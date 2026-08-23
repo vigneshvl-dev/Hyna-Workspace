@@ -16,7 +16,8 @@ const STORAGE_KEYS = {
   MESSAGES: 'hyna_messages',
   EVENTS: 'hyna_events',
   AUDIT_LOGS: 'hyna_audit_logs',
-  ADMIN_SETTINGS: 'hyna_admin_settings'
+  ADMIN_SETTINGS: 'hyna_admin_settings',
+  CHANNELS: 'hyna_channels'
 };
 
 const DEFAULT_AUDIT_LOGS = [
@@ -240,6 +241,12 @@ const DEFAULT_NOTIFICATIONS = [
 ];
 
 const DEFAULT_MESSAGES = [];
+
+const DEFAULT_CHANNELS = [
+  { id: 'general', name: 'general', icon: 'fa-hashtag', type: 'standard' },
+  { id: 'project-hyna', name: 'project-hyna', icon: 'fa-hashtag', type: 'standard' },
+  { id: 'announcements', name: 'announcements', icon: 'fa-bullhorn', type: 'announcements' }
+];
 
 const DEFAULT_DOCUMENTS = [
   { id: 'doc-1', name: 'Hyna_Studio_Employee_Handbook_2026.pdf', type: 'PDF', uploadedBy: 'Elena Rostova', date: '2026-08-01', size: '2.4 MB', category: 'Company Documents' },
@@ -783,6 +790,41 @@ class StorageService {
     }
 
     return newMsg;
+  }
+
+  // --- Channels ---
+  getChannels() {
+    let channels = JSON.parse(localStorage.getItem(STORAGE_KEYS.CHANNELS));
+    if (!channels || !Array.isArray(channels) || channels.length === 0) {
+      channels = DEFAULT_CHANNELS;
+      localStorage.setItem(STORAGE_KEYS.CHANNELS, JSON.stringify(channels));
+    }
+    return channels;
+  }
+
+  createChannel(channelName) {
+    if (!channelName) return { success: false, error: 'Channel name cannot be empty.' };
+    const cleanName = channelName.toLowerCase().trim().replace(/[^a-z0-9_-]/g, '-').replace(/-+/g, '-').replace(/^-|-$/g, '');
+    if (!cleanName) return { success: false, error: 'Invalid channel name format.' };
+
+    const channels = this.getChannels();
+    if (channels.some(c => c.id === cleanName || c.name === cleanName)) {
+      return { success: false, error: `Channel #${cleanName} already exists!` };
+    }
+
+    const newChannel = {
+      id: cleanName,
+      name: cleanName,
+      icon: 'fa-hashtag',
+      type: 'custom',
+      createdBy: this.getCurrentUser()?.name || 'Employee',
+      createdAt: new Date().toISOString()
+    };
+
+    channels.push(newChannel);
+    localStorage.setItem(STORAGE_KEYS.CHANNELS, JSON.stringify(channels));
+    this.addAuditLog('Channel Created', `Channel #${cleanName} created`);
+    return { success: true, channel: newChannel };
   }
 
   // --- Documents ---
