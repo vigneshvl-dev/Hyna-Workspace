@@ -583,21 +583,34 @@ class StorageService {
     return newModule;
   }
 
-  submitModule(moduleId, submissionText, submissionLink) {
+  startModule(moduleId) {
+    const modules = this.getModules();
+    const index = modules.findIndex(m => m.id === moduleId);
+    if (index !== -1 && (modules[index].status === 'Assigned' || !modules[index].status)) {
+      modules[index].status = 'In Progress';
+      if (modules[index].progress === 0) modules[index].progress = 10;
+      localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(modules));
+      this.addAuditLog('Module Started', `Employee started ${modules[index].number} - ${modules[index].title}`);
+    }
+  }
+
+  submitModule(moduleId, submissionText, submissionLink, submissionImage = null) {
     const modules = this.getModules();
     const index = modules.findIndex(m => m.id === moduleId);
     if (index !== -1) {
       modules[index].status = 'Submitted';
-      modules[index].progress = 100;
+      modules[index].progress = 85;
       modules[index].submissionText = submissionText;
       modules[index].submissionLink = submissionLink;
+      modules[index].submissionImage = submissionImage || null;
       localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(modules));
       
       this.createNotification({
-        title: 'Module Submitted',
-        message: `${modules[index].number} "${modules[index].title}" has been submitted for Manager review.`,
+        title: 'Module Submitted for Verification 📷',
+        message: `${modules[index].number} "${modules[index].title}" submitted with verification screenshot for Admin approval.`,
         category: 'Module'
       });
+      this.addAuditLog('Module Submitted', `Submitted ${modules[index].number} with verification image`);
     }
   }
 
@@ -608,32 +621,50 @@ class StorageService {
       modules[index].status = 'Completed';
       modules[index].progress = 100;
       
-      // Auto unlock next module
+      // Auto unlock next module starting at 0%
       const nextIndex = index + 1;
       if (nextIndex < modules.length) {
         modules[nextIndex].unlocked = true;
-        modules[nextIndex].status = 'In Progress';
+        modules[nextIndex].status = 'Assigned';
+        modules[nextIndex].progress = 0;
         
         this.createNotification({
           title: 'New Module Unlocked! 🚀',
-          message: `Congratulations! ${modules[index].number} approved. ${modules[nextIndex].number} "${modules[nextIndex].title}" is now unlocked!`,
+          message: `Admin Approved ${modules[index].number}! ${modules[nextIndex].number} "${modules[nextIndex].title}" is now unlocked for you.`,
           category: 'Module'
         });
       } else {
         this.createNotification({
-          title: 'Module Approved! 🎉',
+          title: 'All Modules Approved! 🎉',
           message: `${modules[index].number} "${modules[index].title}" has been approved! All modules complete.`,
           category: 'Module'
         });
       }
 
       localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(modules));
+      this.addAuditLog('Module Approved', `Admin approved ${modules[index].number}`);
     }
   }
 
   // --- Attendance ---
   getAttendance() {
     return JSON.parse(localStorage.getItem(STORAGE_KEYS.ATTENDANCE)) || [];
+  }
+
+  recordDailyAttendance() {
+    const logs = this.getAttendance();
+    const todayStr = new Date().toISOString().split('T')[0];
+    const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+
+    let todayLog = logs.find(l => l.date === todayStr);
+    if (!todayLog) {
+      todayLog = { date: todayStr, checkIn: nowTimeStr, checkOut: null, workingTime: '4h 30m', status: 'Checked In' };
+      logs.unshift(todayLog);
+      localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(logs));
+      this.addAuditLog('Daily Attendance Logged', `Checked in for ${todayStr} at ${nowTimeStr}`);
+      return { success: true, isNew: true, log: todayLog };
+    }
+    return { success: true, isNew: false, log: todayLog };
   }
 
   checkIn() {
