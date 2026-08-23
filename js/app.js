@@ -249,17 +249,25 @@ class AppController {
 
     browseBtn?.addEventListener('click', () => fileInput.click());
 
-    fileInput?.addEventListener('change', (e) => {
+    fileInput?.addEventListener('change', async (e) => {
       const file = e.target.files[0];
       if (file) {
-        const reader = new FileReader();
-        reader.onload = (evt) => {
-          const dataUrl = evt.target.result;
+        try {
+          this.showToast(`Optimizing photo "${file.name}"...`, 'info');
+          const dataUrl = await window.compressImageFile(file, 250, 250, 0.85);
           avatarHiddenInput.value = dataUrl;
           if (avatarPreview) avatarPreview.src = dataUrl;
-          this.showToast(`Uploaded photo "${file.name}"`, 'success');
-        };
-        reader.readAsDataURL(file);
+          this.showToast(`Uploaded photo "${file.name}"! Click "Save Profile Changes" to save.`, 'success');
+        } catch (err) {
+          console.error("Image compression error:", err);
+          const reader = new FileReader();
+          reader.onload = (evt) => {
+            avatarHiddenInput.value = evt.target.result;
+            if (avatarPreview) avatarPreview.src = evt.target.result;
+            this.showToast(`Uploaded photo "${file.name}"`, 'success');
+          };
+          reader.readAsDataURL(file);
+        }
       }
     });
 
