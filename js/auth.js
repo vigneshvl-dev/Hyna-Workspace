@@ -53,13 +53,16 @@ class AuthService {
 
   requireAdminAuth() {
     if (!this.storage.isSessionActive()) {
-      window.location.href = 'login.html';
-      return;
-    }
-    if (!this.isManagerOrAdmin()) {
-      alert(`Access Denied: Current user (${this.getCurrentUser().name}) does not have Administrative clearance.`);
       window.location.href = 'index.html';
+      return false;
     }
+    const currentUser = this.getCurrentUser();
+    if (!currentUser || (currentUser.empId !== 'EMP-001' && currentUser.id !== 'user-001')) {
+      alert(`Access Denied: Only Employee ID EMP-001 (VIGNESH V L) is authorized to access the Admin Panel.`);
+      window.location.href = 'index.html#dashboard';
+      return false;
+    }
+    return true;
   }
 }
 
