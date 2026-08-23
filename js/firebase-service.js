@@ -208,6 +208,108 @@ class FirebaseService {
   }
 
   // --- Real-time Cloud Sync for Submissions, Documents & Calendar ---
+  async syncCollection(collectionName, dataArray) {
+    try {
+      await fetch(`${this.baseUrl}/${collectionName}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(dataArray)
+      });
+    } catch (e) {
+      console.warn(`Firebase collection sync error (${collectionName}):`, e);
+    }
+  }
+
+  startCloudAutoSync() {
+    if (this.syncTimer) return;
+    
+    // Poll Cloud Database every 3 seconds to sync additions, edits & deletions across all devices in real-time
+    this.syncTimer = setInterval(async () => {
+      try {
+        const [users, modules, docs, events, msgs, att] = await Promise.all([
+          fetch(`${this.baseUrl}/users.json`).then(r => r.ok ? r.json() : null),
+          fetch(`${this.baseUrl}/modules.json`).then(r => r.ok ? r.json() : null),
+          fetch(`${this.baseUrl}/documents.json`).then(r => r.ok ? r.json() : null),
+          fetch(`${this.baseUrl}/events.json`).then(r => r.ok ? r.json() : null),
+          fetch(`${this.baseUrl}/messages.json`).then(r => r.ok ? r.json() : null),
+          fetch(`${this.baseUrl}/attendance.json`).then(r => r.ok ? r.json() : null)
+        ]);
+
+        let viewNeedsRefresh = false;
+
+        if (users && Array.isArray(Object.values(users))) {
+          const list = Object.values(users);
+          const currentStr = localStorage.getItem('hyna_users');
+          if (JSON.stringify(list) !== currentStr) {
+            localStorage.setItem('hyna_users', JSON.stringify(list));
+            viewNeedsRefresh = true;
+          }
+        }
+
+        if (modules && Array.isArray(Object.values(modules))) {
+          const list = Object.values(modules);
+          const currentStr = localStorage.getItem('hyna_modules');
+          if (JSON.stringify(list) !== currentStr) {
+            localStorage.setItem('hyna_modules', JSON.stringify(list));
+            viewNeedsRefresh = true;
+          }
+        }
+
+        if (docs && Array.isArray(Object.values(docs))) {
+          const list = Object.values(docs);
+          const currentStr = localStorage.getItem('hyna_documents');
+          if (JSON.stringify(list) !== currentStr) {
+            localStorage.setItem('hyna_documents', JSON.stringify(list));
+            viewNeedsRefresh = true;
+          }
+        }
+
+        if (events && Array.isArray(Object.values(events))) {
+          const list = Object.values(events);
+          const currentStr = localStorage.getItem('hyna_events');
+          if (JSON.stringify(list) !== currentStr) {
+            localStorage.setItem('hyna_events', JSON.stringify(list));
+            viewNeedsRefresh = true;
+          }
+        }
+
+        if (msgs && Array.isArray(Object.values(msgs))) {
+          const list = Object.values(msgs);
+          const currentStr = localStorage.getItem('hyna_messages');
+          if (JSON.stringify(list) !== currentStr) {
+            localStorage.setItem('hyna_messages', JSON.stringify(list));
+            viewNeedsRefresh = true;
+          }
+        }
+
+        if (att && Array.isArray(Object.values(att))) {
+          const list = Object.values(att);
+          const currentStr = localStorage.getItem('hyna_attendance');
+          if (JSON.stringify(list) !== currentStr) {
+            localStorage.setItem('hyna_attendance', JSON.stringify(list));
+            viewNeedsRefresh = true;
+          }
+        }
+
+        if (viewNeedsRefresh) {
+          const appContent = document.getElementById('app-content');
+          const adminContent = document.getElementById('admin-app-content');
+
+          if (appContent && window.appController) {
+            const currentRoute = window.location.hash.replace('#', '') || 'dashboard';
+            window.appController.navigate(currentRoute);
+          }
+          if (adminContent && window.adminController) {
+            const currentRoute = window.adminController.currentView || 'overview';
+            window.adminController.navigate(currentRoute);
+          }
+        }
+      } catch (e) {
+        // Silent background sync
+      }
+    }, 3000);
+  }
+
   async syncModuleSubmission(modData) {
     try {
       await fetch(`${this.baseUrl}/modules/${modData.id}.json`, {

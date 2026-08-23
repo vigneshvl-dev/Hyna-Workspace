@@ -1228,6 +1228,9 @@ class StorageService {
     };
     modules.push(newMod);
     localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(modules));
+    if (window.firebaseService) {
+      window.firebaseService.syncCollection('modules', modules);
+    }
 
     this.createNotification({
       title: `New Module Created: ${newMod.title}`,
@@ -1246,6 +1249,9 @@ class StorageService {
     modules = modules.filter(m => m.id !== moduleId);
     localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(modules));
     this.addAuditLog('Module Deleted', `Deleted module "${mod.title}"`);
+    if (window.firebaseService) {
+      window.firebaseService.syncCollection('modules', modules);
+    }
     return { success: true };
   }
 
