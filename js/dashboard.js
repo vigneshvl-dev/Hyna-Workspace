@@ -104,7 +104,7 @@ class DashboardController {
         <div class="kpi-card">
           <div class="kpi-icon-box kpi-icon-purple"><i class="fa-solid fa-clock"></i></div>
           <div>
-            <div class="kpi-value">92%</div>
+            <div class="kpi-value">${this.storage.getAttendanceRate()}%</div>
             <div class="kpi-label">Attendance Rate</div>
           </div>
         </div>

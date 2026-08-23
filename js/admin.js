@@ -80,6 +80,9 @@ class AdminController {
       case 'project-leads':
         this.renderProjectLeadsTab(container);
         break;
+      case 'attendance':
+        this.renderAttendanceTab(container);
+        break;
       case 'audit':
         this.renderAuditLogsTab(container);
         break;
@@ -1957,6 +1960,146 @@ class AdminController {
       } else {
         this.showToast('Failed to assign task', 'error');
       }
+    });
+  }
+
+  // --- ATTENDANCE MONITOR TAB ---
+  renderAttendanceTab(container) {
+    const logs = this.storage.getAttendance();
+    const attendanceRate = this.storage.getAttendanceRate();
+
+    const presentCount = logs.filter(l => ['Present', 'Checked In'].includes(l.status)).length;
+    const lateCount = logs.filter(l => l.status === 'Late Check In').length;
+    const absentCount = logs.filter(l => l.status === 'Absent').length;
+
+    container.innerHTML = `
+      <div class="admin-header-banner">
+        <div class="admin-banner-top">
+          <div class="admin-banner-title">
+            <h2><i class="fa-solid fa-clock text-primary"></i> Employee Attendance & Time Log Monitor</h2>
+            <p style="color:#94a3b8; font-size:0.9rem; margin-top:0.25rem;">Monitor daily employee check-ins, 10:00 AM deadline cutoffs, late check-ins, and manual status overrides</p>
+          </div>
+        </div>
+      </div>
+
+      <!-- KPI Overview Cards -->
+      <div class="grid grid-4" style="gap: 1.25rem; margin-bottom: 1.5rem;">
+        <div class="card" style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem;">
+          <div style="background: rgba(16, 185, 129, 0.15); color: #10b981; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="fa-solid fa-chart-line"></i>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #fff;">${attendanceRate}%</div>
+            <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">Overall Attendance Rate</div>
+          </div>
+        </div>
+
+        <div class="card" style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem;">
+          <div style="background: rgba(56, 189, 248, 0.15); color: #38bdf8; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="fa-solid fa-user-check"></i>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #fff;">${presentCount}</div>
+            <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">Present / Checked In</div>
+          </div>
+        </div>
+
+        <div class="card" style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem;">
+          <div style="background: rgba(245, 158, 11, 0.15); color: #f59e0b; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="fa-solid fa-user-clock"></i>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #fff;">${lateCount}</div>
+            <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">Late Check-Ins (After 10 AM)</div>
+          </div>
+        </div>
+
+        <div class="card" style="display: flex; align-items: center; gap: 1rem; padding: 1.25rem;">
+          <div style="background: rgba(239, 68, 68, 0.15); color: #ef4444; width: 48px; height: 48px; border-radius: 12px; display: flex; align-items: center; justify-content: center; font-size: 1.25rem;">
+            <i class="fa-solid fa-user-xmark"></i>
+          </div>
+          <div>
+            <div style="font-size: 1.5rem; font-weight: 800; color: #fff;">${absentCount}</div>
+            <div style="font-size: 0.8rem; color: #94a3b8; font-weight: 600;">Recorded Absences</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Attendance Rules Banner -->
+      <div class="card" style="margin-bottom: 1.5rem; background: rgba(56, 189, 248, 0.05); border: 1px solid rgba(56, 189, 248, 0.2); padding: 1rem 1.25rem;">
+        <div style="display: flex; align-items: center; gap: 0.75rem;">
+          <i class="fa-solid fa-circle-info text-primary" style="font-size: 1.2rem;"></i>
+          <span style="font-size: 0.85rem; color: var(--text-main);">
+            <strong>Attendance Policy:</strong> Attendance Rate starts at <strong>100%</strong>. Daily check-in deadline is <strong>10:00 AM</strong>. Check-ins after 10:00 AM are flagged as <em>Late Check In</em>. Missed check-ins decrease attendance rate.
+          </span>
+        </div>
+      </div>
+
+      <!-- Employee Attendance Log Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-list-check text-primary"></i> Employee Time Logs & Status Governance (${logs.length})</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Date</th>
+                <th>Employee / Account</th>
+                <th>Check-In Time</th>
+                <th>Check-Out Time</th>
+                <th>Working Time</th>
+                <th>Status</th>
+                <th>Status Override</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${logs.length === 0 ? `
+                <tr>
+                  <td colspan="7" style="text-align:center; color:#94a3b8; padding:2rem;">
+                    No attendance logs recorded yet.
+                  </td>
+                </tr>
+              ` : logs.map(l => `
+                <tr>
+                  <td style="font-weight:700; color:#fff;">${l.date}</td>
+                  <td style="font-weight:600; font-size:0.85rem;">VIGNESH V L (EMP-001)</td>
+                  <td style="font-size:0.85rem;">${l.checkIn || '—'}</td>
+                  <td style="font-size:0.85rem;">${l.checkOut || '—'}</td>
+                  <td style="font-size:0.85rem;">${l.workingTime || '0h 00m'}</td>
+                  <td>
+                    <span class="badge ${['Present', 'Checked In'].includes(l.status) ? 'badge-success' : l.status === 'Late Check In' ? 'badge-warning' : 'badge-danger'}">
+                      ${l.status}
+                    </span>
+                  </td>
+                  <td>
+                    <div style="display:flex; gap:0.35rem;">
+                      <button class="btn btn-sm btn-secondary btn-override-status" data-date="${l.date}" data-status="Present" title="Mark Present">
+                        <i class="fa-solid fa-check text-success"></i> Present
+                      </button>
+                      <button class="btn btn-sm btn-secondary btn-override-status" data-date="${l.date}" data-status="Absent" title="Mark Absent">
+                        <i class="fa-solid fa-xmark text-danger"></i> Absent
+                      </button>
+                    </div>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
+      </div>
+    `;
+
+    container.querySelectorAll('.btn-override-status').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const dateStr = e.currentTarget.getAttribute('data-date');
+        const newStatus = e.currentTarget.getAttribute('data-status');
+        const res = this.storage.updateAttendanceRecord(dateStr, newStatus);
+        if (res.success) {
+          this.showToast(`Updated attendance status for ${dateStr} to ${newStatus}`, 'success');
+          this.renderAttendanceTab(container);
+        }
+      });
     });
   }
 

@@ -207,9 +207,9 @@ const DEFAULT_PROJECTS = [
 ];
 
 const DEFAULT_ATTENDANCE = [
-  { date: '2026-08-22', checkIn: '09:12 AM', checkOut: null, workingTime: '4h 32m', status: 'Checked In' },
+  { date: '2026-08-22', checkIn: '09:12 AM', checkOut: '06:00 PM', workingTime: '8h 48m', status: 'Present' },
   { date: '2026-08-21', checkIn: '09:08 AM', checkOut: '06:10 PM', workingTime: '9h 02m', status: 'Present' },
-  { date: '2026-08-20', checkIn: '—', checkOut: '—', workingTime: '0h 00m', status: 'Leave' },
+  { date: '2026-08-20', checkIn: '09:15 AM', checkOut: '06:00 PM', workingTime: '8h 45m', status: 'Present' },
   { date: '2026-08-19', checkIn: '09:00 AM', checkOut: '06:00 PM', workingTime: '9h 00m', status: 'Present' },
   { date: '2026-08-18', checkIn: '09:15 AM', checkOut: '06:05 PM', workingTime: '8h 50m', status: 'Present' }
 ];
@@ -657,37 +657,84 @@ class StorageService {
 
   // --- Attendance ---
   getAttendance() {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.ATTENDANCE)) || [];
+    let logs = JSON.parse(localStorage.getItem(STORAGE_KEYS.ATTENDANCE));
+    if (!logs || !Array.isArray(logs) || logs.length === 0 || logs.some(l => l.status === 'Leave')) {
+      logs = DEFAULT_ATTENDANCE;
+      localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(logs));
+    }
+    return logs;
+  }
+
+  getAttendanceRate() {
+    const logs = this.getAttendance();
+    if (!logs || logs.length === 0) return 100;
+    const presentOrCheckedIn = logs.filter(l => ['Present', 'Checked In', 'Late Check In'].includes(l.status)).length;
+    return Math.round((presentOrCheckedIn / logs.length) * 100);
   }
 
   recordDailyAttendance() {
-    const logs = this.getAttendance();
-    const todayStr = new Date().toISOString().split('T')[0];
-    const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    let logs = this.getAttendance();
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const nowTimeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const currentHour = now.getHours();
 
     let todayLog = logs.find(l => l.date === todayStr);
+    const isLate = currentHour >= 10;
+    const assignedStatus = isLate ? 'Late Check In' : 'Checked In';
+
     if (!todayLog) {
-      todayLog = { date: todayStr, checkIn: nowTimeStr, checkOut: null, workingTime: '4h 30m', status: 'Checked In' };
+      todayLog = { 
+        date: todayStr, 
+        checkIn: nowTimeStr, 
+        checkOut: null, 
+        workingTime: '4h 30m', 
+        status: assignedStatus 
+      };
       logs.unshift(todayLog);
       localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(logs));
-      this.addAuditLog('Daily Attendance Logged', `Checked in for ${todayStr} at ${nowTimeStr}`);
-      return { success: true, isNew: true, log: todayLog };
+      this.addAuditLog('Daily Attendance Logged', `Checked in for ${todayStr} at ${nowTimeStr} (${assignedStatus})`);
+      return { success: true, isNew: true, log: todayLog, isLate };
     }
-    return { success: true, isNew: false, log: todayLog };
+    return { success: true, isNew: false, log: todayLog, isLate };
+  }
+
+  updateAttendanceRecord(dateStr, newStatus) {
+    let logs = this.getAttendance();
+    const index = logs.findIndex(l => l.date === dateStr);
+    if (index !== -1) {
+      logs[index].status = newStatus;
+      if (newStatus === 'Absent') {
+        logs[index].checkIn = '—';
+        logs[index].checkOut = '—';
+        logs[index].workingTime = '0h 00m';
+      } else if (newStatus === 'Present' && logs[index].checkIn === '—') {
+        logs[index].checkIn = '09:00 AM';
+        logs[index].checkOut = '06:00 PM';
+        logs[index].workingTime = '9h 00m';
+      }
+      localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(logs));
+      this.addAuditLog('Attendance Override', `Updated status for ${dateStr} to ${newStatus}`);
+      return { success: true };
+    }
+    return { success: false, error: 'Record not found' };
   }
 
   checkIn() {
     const logs = this.getAttendance();
-    const todayStr = new Date().toISOString().split('T')[0];
-    const nowTimeStr = new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const now = new Date();
+    const todayStr = now.toISOString().split('T')[0];
+    const nowTimeStr = now.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
+    const isLate = now.getHours() >= 10;
+    const assignedStatus = isLate ? 'Late Check In' : 'Checked In';
     
     let todayLog = logs.find(l => l.date === todayStr);
     if (!todayLog) {
-      todayLog = { date: todayStr, checkIn: nowTimeStr, checkOut: null, workingTime: '0h 01m', status: 'Checked In' };
+      todayLog = { date: todayStr, checkIn: nowTimeStr, checkOut: null, workingTime: '0h 01m', status: assignedStatus };
       logs.unshift(todayLog);
     } else {
       todayLog.checkIn = nowTimeStr;
-      todayLog.status = 'Checked In';
+      todayLog.status = assignedStatus;
     }
     localStorage.setItem(STORAGE_KEYS.ATTENDANCE, JSON.stringify(logs));
     return todayLog;
