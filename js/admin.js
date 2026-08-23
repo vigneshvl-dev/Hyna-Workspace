@@ -541,9 +541,14 @@ class AdminController {
       <div class="card">
         <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
           <h3 class="card-title"><i class="fa-solid fa-book-open text-primary"></i> Global Module Publishing Governance</h3>
-          <button class="btn btn-secondary btn-sm" id="btn-unlock-all-modules">
-            <i class="fa-solid fa-lock-open"></i> Unlock All Modules
-          </button>
+          <div style="display:flex; gap:0.5rem;">
+            <button class="btn btn-primary btn-sm" id="btn-open-add-module-modal">
+              <i class="fa-solid fa-plus"></i> Add New Module
+            </button>
+            <button class="btn btn-secondary btn-sm" id="btn-unlock-all-modules">
+              <i class="fa-solid fa-lock-open"></i> Unlock All Modules
+            </button>
+          </div>
         </div>
         <div style="display:flex; flex-direction:column; gap:1rem; margin-top:1rem;">
           ${modules.map(m => `
@@ -552,12 +557,15 @@ class AdminController {
                 <div style="font-weight:700; color:#fff; font-size:1.05rem;">${m.number}: ${m.title}</div>
                 <div style="font-size:0.8rem; color:#94a3b8; margin-top:0.2rem;">${m.description}</div>
               </div>
-              <div style="display:flex; align-items:center; gap:1rem;">
+              <div style="display:flex; align-items:center; gap:0.6rem;">
                 <span class="badge ${m.unlocked ? 'badge-success' : 'badge-danger'}">
                   ${m.unlocked ? 'Published & Unlocked' : 'Locked'}
                 </span>
                 <button class="btn btn-sm ${m.unlocked ? 'btn-secondary' : 'btn-primary'} btn-toggle-module" data-module-id="${m.id}">
                   ${m.unlocked ? 'Lock' : 'Publish / Unlock'}
+                </button>
+                <button class="btn btn-sm btn-danger btn-delete-module" data-module-id="${m.id}" title="Delete Module">
+                  <i class="fa-solid fa-trash"></i> Delete
                 </button>
               </div>
             </div>
@@ -565,6 +573,10 @@ class AdminController {
         </div>
       </div>
     `;
+
+    container.querySelector('#btn-open-add-module-modal')?.addEventListener('click', () => {
+      this.openAddModuleModal(container);
+    });
 
     container.querySelectorAll('.btn-toggle-module').forEach(btn => {
       btn.addEventListener('click', (e) => {
@@ -576,6 +588,19 @@ class AdminController {
           localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(modules));
           this.showToast(`Updated ${mod.number} status!`, 'info');
           this.renderModulesTab(container);
+        }
+      });
+    });
+
+    container.querySelectorAll('.btn-delete-module').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const modId = e.currentTarget.getAttribute('data-module-id');
+        if (confirm("Are you sure you want to delete this module?")) {
+          const res = this.storage.deleteModule(modId);
+          if (res.success) {
+            this.showToast('Module deleted successfully!', 'success');
+            this.renderModulesTab(container);
+          }
         }
       });
     });
