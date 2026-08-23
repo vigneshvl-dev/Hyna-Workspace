@@ -12,7 +12,8 @@ class AttendanceController {
   renderAttendanceView(container) {
     const logs = this.storage.getAttendance();
     const todayLog = logs.find(l => l.date === new Date().toISOString().split('T')[0]);
-    const isCheckedIn = todayLog && todayLog.status === 'Checked In';
+    const isCheckedIn = todayLog && ['Checked In', 'Present', 'Late Check In'].includes(todayLog.status);
+    const attendanceRate = this.storage.getAttendanceRate();
 
     container.innerHTML = `
       <div class="page-header">
@@ -25,15 +26,15 @@ class AttendanceController {
       <div class="attendance-hero-card">
         <div class="clock-widget-box">
           <span class="clock-status-pill ${isCheckedIn ? 'clock-status-checked-in' : 'clock-status-checked-out'}">
-            <i class="fa-solid fa-circle" style="font-size: 0.5rem;"></i>
-            Status: ${isCheckedIn ? 'Checked In' : 'Not Checked In'}
+            <i class="fa-solid ${isCheckedIn ? 'fa-circle-check text-success' : 'fa-circle'}" style="font-size: ${isCheckedIn ? '0.8rem' : '0.5rem'};"></i>
+            Status: ${isCheckedIn ? (todayLog ? todayLog.status : 'Checked In') : 'Not Checked In'}
           </span>
           <div class="live-time-ticker" id="live-timer-display">${this.formatDuration(this.secondsWorked)}</div>
           <div class="live-date-display"><i class="fa-regular fa-calendar-days"></i> ${new Date().toDateString()}</div>
           <div style="margin-top: 1.5rem; display: flex; gap: 1rem;">
             ${!isCheckedIn ? `
               <button class="btn btn-success btn-lg" id="check-in-btn">
-                <i class="fa-solid fa-play"></i> Check In
+                <i class="fa-solid fa-check-circle"></i> Check In
               </button>
             ` : `
               <button class="btn btn-danger btn-lg" id="check-out-btn">
@@ -45,9 +46,9 @@ class AttendanceController {
 
         <div class="attendance-stats-summary">
           <div class="stat-box-item">
-            <div class="stat-box-title">Monthly Attendance</div>
-            <div class="stat-box-value" style="color: var(--primary);">92%</div>
-            <span style="font-size: 0.75rem; color: var(--success); font-weight: 700;">+4% from last month</span>
+            <div class="stat-box-title">Monthly Attendance Rate</div>
+            <div class="stat-box-value" style="color: var(--primary);">${attendanceRate}%</div>
+            <span style="font-size: 0.75rem; color: var(--success); font-weight: 700;">100% Baseline Standard</span>
           </div>
           <div class="stat-box-item">
             <div class="stat-box-title">Present Days</div>
@@ -109,14 +110,14 @@ class AttendanceController {
 
   attachEvents(container) {
     container.querySelector('#check-in-btn')?.addEventListener('click', () => {
-      this.storage.checkIn();
-      window.appController?.showToast('Successfully Checked In! Timer started.', 'success');
+      const res = this.storage.checkIn();
+      window.appController?.showToast(`Checked In Successfully! Status: ${res.status}`, 'success');
       this.renderAttendanceView(container);
     });
 
     container.querySelector('#check-out-btn')?.addEventListener('click', () => {
       this.storage.checkOut();
-      window.appController?.showToast('Checked Out successfully.', 'info');
+      window.appController?.showToast('Checked Out successfully. Working hours logged for today.', 'info');
       this.renderAttendanceView(container);
     });
   }
