@@ -720,6 +720,18 @@ class StorageService {
     let msgs = JSON.parse(localStorage.getItem(STORAGE_KEYS.MESSAGES)) || [];
     // Filter out legacy demo messages
     msgs = msgs.filter(m => m.id !== 'm1' && m.id !== 'm2' && m.id !== 'm3');
+
+    // Sync message avatars with current user roster profiles
+    const users = this.getUsers();
+    msgs.forEach(m => {
+      if (m.sender) {
+        const matchedUser = users.find(u => u.name && u.name.trim().toLowerCase() === m.sender.trim().toLowerCase());
+        if (matchedUser && matchedUser.avatar) {
+          m.avatar = matchedUser.avatar;
+        }
+      }
+    });
+
     return msgs;
   }
 
@@ -727,16 +739,10 @@ class StorageService {
     const msgs = this.getMessages();
     const currentUser = this.getCurrentUser();
 
-    // Use lightweight avatar string if base64 data URL is too long to prevent localStorage QuotaExceededError
-    let avatarUrl = currentUser.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150';
-    if (avatarUrl.startsWith('data:') && avatarUrl.length > 500) {
-      avatarUrl = 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150';
-    }
-
     const newMsg = {
       id: `m-${Date.now()}`,
       sender: currentUser.name,
-      avatar: avatarUrl,
+      avatar: currentUser.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150',
       text: text,
       time: new Date().toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       channel: channel
