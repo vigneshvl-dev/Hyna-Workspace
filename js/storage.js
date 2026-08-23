@@ -326,16 +326,22 @@ class StorageService {
     }
   }
 
+  getDeletedUserIds() {
+    return JSON.parse(localStorage.getItem('hyna_deleted_user_ids')) || [];
+  }
+
   // --- Users & Roles ---
   getUsers() {
     let users = JSON.parse(localStorage.getItem(STORAGE_KEYS.USERS));
+    const deletedIds = this.getDeletedUserIds();
+
     if (!users || !Array.isArray(users) || users.length === 0) {
-      users = DEFAULT_USERS;
+      users = DEFAULT_USERS.filter(d => !deletedIds.includes(d.id));
       localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
     } else {
       let updated = false;
       DEFAULT_USERS.forEach(defUser => {
-        if (!users.some(u => u.id === defUser.id || u.empId === defUser.empId)) {
+        if (!deletedIds.includes(defUser.id) && !users.some(u => u.id === defUser.id || u.empId === defUser.empId)) {
           users.push(defUser);
           updated = true;
         }
@@ -476,11 +482,19 @@ class StorageService {
     const targetUser = users.find(u => u.id === userId);
     users = users.filter(u => u.id !== userId);
     localStorage.setItem(STORAGE_KEYS.USERS, JSON.stringify(users));
+
+    const deletedIds = this.getDeletedUserIds();
+    if (!deletedIds.includes(userId)) {
+      deletedIds.push(userId);
+      localStorage.setItem('hyna_deleted_user_ids', JSON.stringify(deletedIds));
+    }
+
     if (targetUser) {
       this.addAuditLog('Employee Deleted', `${targetUser.name} (${targetUser.empId || userId}) removed from roster`);
     }
     if (window.firebaseService) {
       window.firebaseService.deleteUser(userId);
+      window.firebaseService.syncCollection('users', users);
     }
   }
 

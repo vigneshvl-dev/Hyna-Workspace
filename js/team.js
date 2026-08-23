@@ -21,6 +21,11 @@ class TeamController {
       <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1.25rem;">
         ${users.map(u => `
           <div class="card" style="text-align: center; position: relative; padding: 1.5rem 1rem;">
+            ${u.id !== 'user-001' && u.empId !== 'EMP-001' ? `
+              <button class="btn btn-secondary btn-sm btn-delete-team-member" data-id="${u.id}" data-name="${u.name}" style="position: absolute; top: 1rem; left: 1rem; padding: 0.25rem 0.5rem; background: rgba(239, 68, 68, 0.1); border: 1px solid rgba(239, 68, 68, 0.2);" title="Delete Employee">
+                <i class="fa-solid fa-trash text-danger" style="font-size: 0.8rem;"></i>
+              </button>
+            ` : ''}
             <div style="position: absolute; top: 1rem; right: 1rem;">
               <span class="badge ${u.status === 'Active' ? 'badge-success' : 'badge-danger'}" style="font-size: 0.65rem;">
                 <i class="fa-solid fa-circle" style="font-size: 0.45rem;"></i> ${u.status || 'Active'}
@@ -38,6 +43,18 @@ class TeamController {
         `).join('')}
       </div>
     `;
+
+    container.querySelectorAll('.btn-delete-team-member').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const id = e.currentTarget.getAttribute('data-id');
+        const name = e.currentTarget.getAttribute('data-name');
+        if (confirm(`Are you sure you want to delete "${name}" from the team directory?`)) {
+          this.storage.deleteUser(id);
+          window.appController?.showToast(`Deleted employee "${name}"`, 'info');
+          this.renderTeamView(container);
+        }
+      });
+    });
   }
 }
 
