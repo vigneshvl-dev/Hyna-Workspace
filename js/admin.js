@@ -1051,8 +1051,11 @@ class AdminController {
       </div>
 
       <div class="card" style="margin-bottom: 1.5rem; background: var(--bg-card);">
-        <div class="card-header">
+        <div class="card-header" style="display:flex; justify-content:space-between; align-items:center;">
           <h3 class="card-title"><i class="fa-solid fa-paper-plane text-primary"></i> Distribute Module to Selected Employees</h3>
+          <button class="btn btn-primary btn-sm" id="btn-open-add-module-modal-dist">
+            <i class="fa-solid fa-plus"></i> Add New Module
+          </button>
         </div>
 
         <form id="distribute-module-form">
@@ -1101,6 +1104,47 @@ class AdminController {
             </button>
           </div>
         </form>
+      </div>
+
+      <!-- Manage Workspace Modules List -->
+      <div class="card" style="margin-bottom: 1.5rem;">
+        <div class="card-header">
+          <h3 class="card-title"><i class="fa-solid fa-book-open text-primary"></i> Workspace Modules Directory (${modules.length})</h3>
+        </div>
+        <div class="table-responsive">
+          <table class="admin-table">
+            <thead>
+              <tr>
+                <th>Module Number & Title</th>
+                <th>Instructor Lead</th>
+                <th>Target Deadline</th>
+                <th>Status</th>
+                <th>Actions</th>
+              </tr>
+            </thead>
+            <tbody>
+              ${modules.length === 0 ? `
+                <tr>
+                  <td colspan="5" style="text-align:center; color:#94a3b8; padding:2rem;">
+                    No modules available. Click "Add New Module" above!
+                  </td>
+                </tr>
+              ` : modules.map(m => `
+                <tr>
+                  <td style="font-weight:700; color:#fff;">${m.number}: ${m.title}</td>
+                  <td>${m.instructor || 'Instructor'}</td>
+                  <td>${m.deadline || '2026-09-30'}</td>
+                  <td><span class="badge ${m.unlocked ? 'badge-success' : 'badge-neutral'}">${m.unlocked ? 'Unlocked' : 'Locked'}</span></td>
+                  <td>
+                    <button class="btn btn-sm btn-danger btn-delete-module-dist" data-module-id="${m.id}" title="Delete Module">
+                      <i class="fa-solid fa-trash"></i> Delete
+                    </button>
+                  </td>
+                </tr>
+              `).join('')}
+            </tbody>
+          </table>
+        </div>
       </div>
 
       <div class="card">
@@ -1162,6 +1206,23 @@ class AdminController {
     container.querySelector('#btn-deselect-all-emps')?.addEventListener('click', () => {
       checkboxes.forEach(cb => cb.checked = false);
       updateCount();
+    });
+
+    container.querySelector('#btn-open-add-module-modal-dist')?.addEventListener('click', () => {
+      this.openAddModuleModal(container);
+    });
+
+    container.querySelectorAll('.btn-delete-module-dist').forEach(btn => {
+      btn.addEventListener('click', (e) => {
+        const modId = e.currentTarget.getAttribute('data-module-id');
+        if (confirm("Are you sure you want to delete this module?")) {
+          const res = this.storage.deleteModule(modId);
+          if (res.success) {
+            this.showToast('Module deleted successfully!', 'success');
+            this.renderModuleDistributionTab(container);
+          }
+        }
+      });
     });
 
     container.querySelector('#distribute-module-form')?.addEventListener('submit', (e) => {

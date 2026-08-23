@@ -192,10 +192,17 @@ class CommunicationController {
       }
     });
 
-    // Form Send Handler
+    // Form & Button Send Handler
     const form = container.querySelector('#chat-input-form');
+    const inputEl = container.querySelector('#chat-message-input');
+    const sendBtn = container.querySelector('#chat-input-form button[type="submit"]');
+
     const handleSend = (e) => {
-      if (e) e.preventDefault();
+      if (e) {
+        e.preventDefault();
+        e.stopPropagation();
+      }
+
       const input = container.querySelector('#chat-message-input') || document.getElementById('chat-message-input');
       const text = input ? input.value.trim() : '';
 
@@ -205,17 +212,30 @@ class CommunicationController {
           return;
         }
 
-        this.storage.sendMessage(text, this.activeChannel, this.pendingImage, this.pendingAudio);
-        this.pendingImage = null;
-        this.pendingAudio = null;
-        if (input) input.value = '';
+        try {
+          this.storage.sendMessage(text, this.activeChannel, this.pendingImage, this.pendingAudio);
+          this.pendingImage = null;
+          this.pendingAudio = null;
+          if (input) input.value = '';
 
-        this.renderCommunicationView(container);
-        window.appController?.updateNotificationBadge();
+          this.renderCommunicationView(container);
+          window.appController?.updateNotificationBadge();
+        } catch (err) {
+          console.error("Failed to send message:", err);
+          window.appController?.showToast("Error sending message. Please try again.", "error");
+        }
       }
     };
 
     form?.addEventListener('submit', handleSend);
+    sendBtn?.addEventListener('click', handleSend);
+
+    inputEl?.addEventListener('keydown', (e) => {
+      if (e.key === 'Enter' && !e.shiftKey) {
+        e.preventDefault();
+        handleSend(e);
+      }
+    });
   }
 
   async startVoiceRecording(container) {

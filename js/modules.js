@@ -30,11 +30,6 @@ class ModuleController {
           <h1>Modules Hub</h1>
           <p class="page-subtitle">Sequential learning modules and milestone deliverables</p>
         </div>
-        ${isManager ? `
-          <button class="btn btn-primary" id="create-module-btn">
-            <i class="fa-solid fa-plus"></i> Create New Module
-          </button>
-        ` : ''}
       </div>
 
       <!-- Progression Status Bar Header -->
