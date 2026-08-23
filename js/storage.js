@@ -54,10 +54,10 @@ const DEFAULT_MODULES = [
     number: 'Module 01',
     title: 'Hyna Studio Onboarding & Culture',
     description: 'Overview of company vision, communication channels, code formatting standards, and security policies.',
-    assignedDate: '2026-08-01',
-    deadline: '2026-08-07',
-    progress: 100,
-    status: 'Completed',
+    assignedDate: '2026-08-23',
+    deadline: '2026-09-01',
+    progress: 0,
+    status: 'Assigned',
     instructor: 'Elena Rostova',
     assignedTo: 'user-001',
     unlocked: true,
@@ -68,13 +68,13 @@ const DEFAULT_MODULES = [
     number: 'Module 02',
     title: 'Git & GitHub Enterprise Workflow',
     description: 'Learn branch strategy, pull request reviews, linear git history, merge conflict resolution, and CI/CD pipelines.',
-    assignedDate: '2026-08-08',
-    deadline: '2026-08-15',
-    progress: 100,
-    status: 'Completed',
+    assignedDate: '2026-09-02',
+    deadline: '2026-09-10',
+    progress: 0,
+    status: 'Assigned',
     instructor: 'Sarah Jenkins',
     assignedTo: 'user-001',
-    unlocked: true,
+    unlocked: false,
     content: 'Master our feature-branch workflow. Submit 3 clean PRs with code reviews.'
   },
   {
@@ -82,13 +82,13 @@ const DEFAULT_MODULES = [
     number: 'Module 03',
     title: 'JavaScript Fundamentals & Async Patterns',
     description: 'Deep dive into modern ES6+, Closures, Event Loop, Promises, Async/Await, and REST API integration architecture.',
-    assignedDate: '2026-08-16',
-    deadline: '2026-08-28',
-    progress: 70,
-    status: 'In Progress',
+    assignedDate: '2026-09-11',
+    deadline: '2026-09-20',
+    progress: 0,
+    status: 'Assigned',
     instructor: 'Sarah Jenkins',
     assignedTo: 'user-001',
-    unlocked: true,
+    unlocked: false,
     submissionText: '',
     submissionLink: '',
     content: 'Implement a decoupled REST client wrapper and state management pattern for single-page applications.'
@@ -98,8 +98,8 @@ const DEFAULT_MODULES = [
     number: 'Module 04',
     title: 'Team Development Workflow & Code Auditing',
     description: 'Best practices for peer reviews, unit testing setup, automated linters, and architectural documentation.',
-    assignedDate: '2026-08-29',
-    deadline: '2026-09-05',
+    assignedDate: '2026-09-21',
+    deadline: '2026-09-28',
     progress: 0,
     status: 'Assigned',
     instructor: 'David Chen',
@@ -112,8 +112,8 @@ const DEFAULT_MODULES = [
     number: 'Module 05',
     title: 'Backend API Design & Microservices',
     description: 'Designing RESTful endpoints, database schemas with PostgreSQL, JWT authentication, and service isolation.',
-    assignedDate: '2026-09-06',
-    deadline: '2026-09-18',
+    assignedDate: '2026-09-29',
+    deadline: '2026-10-10',
     progress: 0,
     status: 'Assigned',
     instructor: 'Sarah Jenkins',
@@ -561,7 +561,12 @@ class StorageService {
 
   // --- Modules ---
   getModules() {
-    return JSON.parse(localStorage.getItem(STORAGE_KEYS.MODULES)) || [];
+    let mods = JSON.parse(localStorage.getItem(STORAGE_KEYS.MODULES));
+    if (!mods || mods.length === 0 || (mods[0] && mods[0].id === 'mod-01' && mods[0].status === 'Completed' && !mods[0].submissionText)) {
+      mods = DEFAULT_MODULES;
+      localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(mods));
+    }
+    return mods;
   }
 
   getModuleById(id) {
