@@ -653,6 +653,9 @@ class StorageService {
         category: 'Module'
       });
       this.addAuditLog('Module Submitted', `Submitted ${modules[index].number} using ${modules[index].selectedTool} with verification image`);
+      if (window.firebaseService) {
+        window.firebaseService.syncModuleSubmission(modules[index]);
+      }
     }
   }
 
@@ -685,6 +688,9 @@ class StorageService {
 
       localStorage.setItem(STORAGE_KEYS.MODULES, JSON.stringify(modules));
       this.addAuditLog('Module Approved', `Admin approved ${modules[index].number}`);
+      if (window.firebaseService) {
+        window.firebaseService.syncModuleSubmission(modules[index]);
+      }
     }
   }
 
@@ -1295,6 +1301,9 @@ class StorageService {
     };
     docs.unshift(newDoc);
     localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(docs));
+    if (window.firebaseService) {
+      window.firebaseService.syncDocument(newDoc);
+    }
     return newDoc;
   }
 
@@ -1305,6 +1314,9 @@ class StorageService {
       docs = docs.filter(d => d.id !== docId);
       localStorage.setItem(STORAGE_KEYS.DOCUMENTS, JSON.stringify(docs));
       this.addAuditLog('Document Deleted', `Deleted file "${doc.name}"`);
+      if (window.firebaseService) {
+        window.firebaseService.deleteDocument(docId);
+      }
       return { success: true };
     }
     return { success: false, error: 'Document not found' };

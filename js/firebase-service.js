@@ -206,6 +206,73 @@ class FirebaseService {
       return null;
     }
   }
+
+  // --- Real-time Cloud Sync for Submissions, Documents & Calendar ---
+  async syncModuleSubmission(modData) {
+    try {
+      await fetch(`${this.baseUrl}/modules/${modData.id}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(modData)
+      });
+      this.addAuditLog('Module Cloud Sync', `Module ${modData.number || modData.id} synced across all devices`);
+    } catch (e) {
+      console.warn("Firebase module sync error:", e);
+    }
+  }
+
+  async syncAttendanceRecord(attLog) {
+    try {
+      const key = attLog.date.replace(/[^0-9-]/g, '');
+      await fetch(`${this.baseUrl}/attendance/${key}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(attLog)
+      });
+    } catch (e) {
+      console.warn("Firebase attendance sync error:", e);
+    }
+  }
+
+  async syncDocument(docData) {
+    try {
+      await fetch(`${this.baseUrl}/documents/${docData.id}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(docData)
+      });
+    } catch (e) {
+      console.warn("Firebase document sync error:", e);
+    }
+  }
+
+  async deleteDocument(docId) {
+    try {
+      await fetch(`${this.baseUrl}/documents/${docId}.json`, { method: 'DELETE' });
+    } catch (e) {
+      console.warn("Firebase delete document error:", e);
+    }
+  }
+
+  async syncCalendarEvent(eventData) {
+    try {
+      await fetch(`${this.baseUrl}/events/${eventData.id}.json`, {
+        method: 'PUT',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(eventData)
+      });
+    } catch (e) {
+      console.warn("Firebase calendar event sync error:", e);
+    }
+  }
+
+  async deleteCalendarEvent(eventId) {
+    try {
+      await fetch(`${this.baseUrl}/events/${eventId}.json`, { method: 'DELETE' });
+    } catch (e) {
+      console.warn("Firebase delete event error:", e);
+    }
+  }
 }
 
 window.firebaseService = new FirebaseService();
