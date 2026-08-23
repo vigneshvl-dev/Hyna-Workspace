@@ -44,9 +44,15 @@ class CommunicationController {
 
           <!-- Messages Stream -->
           <div style="flex: 1; padding: 1.5rem; overflow-y: auto; display: flex; flex-direction: column; gap: 1rem;" id="chat-messages-container">
-            ${messages.map(m => `
+            ${messages.length === 0 ? `
+              <div style="text-align: center; margin: auto; color: var(--text-muted); padding: 2rem;">
+                <i class="fa-solid fa-comments text-primary" style="font-size: 2.5rem; margin-bottom: 0.75rem; opacity: 0.6;"></i>
+                <p style="font-size: 0.95rem; font-weight: 600; margin-bottom: 0.25rem;">No messages in #${this.activeChannel} yet</p>
+                <p style="font-size: 0.8rem; opacity: 0.75;">Type a message below to start the conversation with all team members!</p>
+              </div>
+            ` : messages.map(m => `
               <div style="display: flex; gap: 0.85rem;">
-                <img src="${m.avatar}" style="width: 38px; height: 38px; border-radius: var(--radius-full); object-fit: cover;">
+                <img src="${m.avatar || 'https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150'}" style="width: 38px; height: 38px; border-radius: var(--radius-full); object-fit: cover;">
                 <div>
                   <div style="display: flex; align-items: center; gap: 0.5rem;">
                     <span style="font-weight: 700; font-size: 0.875rem;">${m.sender}</span>
@@ -70,6 +76,12 @@ class CommunicationController {
     `;
 
     this.attachEvents(container);
+
+    // Auto scroll chat stream to bottom
+    const msgContainer = container.querySelector('#chat-messages-container');
+    if (msgContainer) {
+      msgContainer.scrollTop = msgContainer.scrollHeight;
+    }
   }
 
   attachEvents(container) {
@@ -88,6 +100,7 @@ class CommunicationController {
         this.storage.sendMessage(text, this.activeChannel);
         input.value = '';
         this.renderCommunicationView(container);
+        window.appController?.updateNotificationBadge();
       }
     });
   }
