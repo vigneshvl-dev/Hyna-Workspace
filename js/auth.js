@@ -18,17 +18,17 @@ class AuthService {
 
   isManagerOrAdmin() {
     const role = this.getRole();
-    return ['Manager', 'Project Management Lead', 'Director', 'CEO', 'Admin', 'Super Admin'].includes(role);
+    return ['Manager', 'Project Management Lead', 'IT Team', 'VP of Product', 'Director', 'CMO', 'CPO', 'COO', 'CTO', 'CEO', 'Admin', 'Super Admin'].includes(role);
   }
 
   isAdmin() {
     const role = this.getRole();
-    return ['Director', 'CEO', 'Admin', 'Super Admin'].includes(role);
+    return ['Director', 'VP of Product', 'IT Team', 'CMO', 'CPO', 'COO', 'CTO', 'CEO', 'Admin', 'Super Admin'].includes(role);
   }
 
   isCEO() {
     const role = this.getRole();
-    return ['CEO', 'Super Admin'].includes(role);
+    return ['CEO', 'CTO', 'COO', 'CPO', 'CMO', 'Super Admin'].includes(role);
   }
 
   switchRole(userId) {

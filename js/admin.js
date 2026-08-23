@@ -120,7 +120,7 @@ class AdminController {
     const settings = this.storage.getAdminSettings();
 
     const activeUsers = users.filter(u => u.status === 'Active').length;
-    const managers = users.filter(u => ['Manager', 'Director', 'CEO', 'Project Management Lead'].includes(u.role)).length;
+    const managers = users.filter(u => ['Manager', 'Director', 'CEO', 'Project Management Lead', 'CTO', 'COO', 'CPO', 'CMO', 'VP of Product', 'IT Team'].includes(u.role)).length;
 
     container.innerHTML = `
       <div class="admin-header-banner">
@@ -333,8 +333,14 @@ class AdminController {
                     <select class="form-control user-role-select" style="padding:0.35rem 0.6rem; font-size:0.82rem; min-width:160px;">
                       <option value="Team Member" ${u.role === 'Team Member' ? 'selected' : ''}>Team Member</option>
                       <option value="Manager" ${u.role === 'Manager' ? 'selected' : ''}>Manager</option>
+                      <option value="IT Team" ${u.role === 'IT Team' ? 'selected' : ''}>IT Team</option>
                       <option value="Project Management Lead" ${u.role === 'Project Management Lead' ? 'selected' : ''}>PM Lead</option>
+                      <option value="VP of Product" ${u.role === 'VP of Product' ? 'selected' : ''}>VP of Product</option>
                       <option value="Director" ${u.role === 'Director' ? 'selected' : ''}>Director</option>
+                      <option value="CMO" ${u.role === 'CMO' ? 'selected' : ''}>CMO</option>
+                      <option value="CPO" ${u.role === 'CPO' ? 'selected' : ''}>CPO</option>
+                      <option value="COO" ${u.role === 'COO' ? 'selected' : ''}>COO</option>
+                      <option value="CTO" ${u.role === 'CTO' ? 'selected' : ''}>CTO</option>
                       <option value="CEO" ${u.role === 'CEO' ? 'selected' : ''}>CEO / Super Admin</option>
                     </select>
                   </td>
@@ -737,8 +743,14 @@ class AdminController {
                 <select class="form-control" id="new-user-role">
                   <option value="Team Member">Team Member</option>
                   <option value="Manager">Manager</option>
+                  <option value="IT Team">IT Team</option>
                   <option value="Project Management Lead">PM Lead</option>
+                  <option value="VP of Product">VP of Product</option>
                   <option value="Director">Director</option>
+                  <option value="CMO">CMO</option>
+                  <option value="CPO">CPO</option>
+                  <option value="COO">COO</option>
+                  <option value="CTO">CTO</option>
                   <option value="CEO">CEO / Super Admin</option>
                 </select>
               </div>
@@ -894,8 +906,14 @@ class AdminController {
                 <select class="form-control" id="edit-user-role">
                   <option value="Team Member" ${user.role === 'Team Member' ? 'selected' : ''}>Team Member</option>
                   <option value="Manager" ${user.role === 'Manager' ? 'selected' : ''}>Manager</option>
+                  <option value="IT Team" ${user.role === 'IT Team' ? 'selected' : ''}>IT Team</option>
                   <option value="Project Management Lead" ${user.role === 'Project Management Lead' ? 'selected' : ''}>PM Lead</option>
+                  <option value="VP of Product" ${user.role === 'VP of Product' ? 'selected' : ''}>VP of Product</option>
                   <option value="Director" ${user.role === 'Director' ? 'selected' : ''}>Director</option>
+                  <option value="CMO" ${user.role === 'CMO' ? 'selected' : ''}>CMO</option>
+                  <option value="CPO" ${user.role === 'CPO' ? 'selected' : ''}>CPO</option>
+                  <option value="COO" ${user.role === 'COO' ? 'selected' : ''}>COO</option>
+                  <option value="CTO" ${user.role === 'CTO' ? 'selected' : ''}>CTO</option>
                   <option value="CEO" ${user.role === 'CEO' ? 'selected' : ''}>CEO / Super Admin</option>
                 </select>
               </div>
@@ -962,9 +980,15 @@ class AdminController {
   getRoleBadgeClass(role) {
     switch (role) {
       case 'CEO': return 'role-ceo';
+      case 'CTO': return 'role-cto';
+      case 'COO': return 'role-coo';
+      case 'CPO': return 'role-cpo';
+      case 'CMO': return 'role-cmo';
       case 'Director': return 'role-director';
+      case 'VP of Product': return 'role-vp';
       case 'Manager': return 'role-manager';
       case 'Project Management Lead': return 'role-pm';
+      case 'IT Team': return 'role-it';
       default: return 'role-member';
     }
   }
